@@ -90,6 +90,5 @@ namespace CodeGenerator
                 return false;
             }
         }
-
     }
 }

@@ -41,18 +41,20 @@
     <Content Include="VendorExt.xslt" />
   </ItemGroup>
   <UsingTask TaskName="CodeGenerator.LLRPCodeGenerator" AssemblyFile="$(MSBuildProjectDirectory)\..\CodeGenerator\bin\$(Configuration)\CodeGenerator.dll" />
-  <Target Name="BeforeBuild" Inputs="@(Generate); templates.xslt" Outputs="@(Generate -&gt; '%(filename).cs')">
+  <Target Name="BeforeBuild" Inputs="@(Generate); templates.xslt" Outputs="@(Generate -> '%(filename).cs')">
     <!--<CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="..\..\Definitions\core\llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -&gt; \'%(filename).cs\')')" />-->
-    <CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -&gt; '%(filename).cs')" Condition="!Exists('@(Generate -&gt; \'%(filename).cs\')')" />
+    <CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -&gt; \'%(filename).cs\')')" />
   </Target>
   <PropertyGroup>
     <CleanDependsOn>
         $(CleanDependsOn);
         CleanGeneratedCode;
     </CleanDependsOn>
+    <RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
+    <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
   </PropertyGroup>
   <Target Name="CleanGeneratedCode">
-    <Delete Files="@(Generate -&gt; '%(filename).cs')" />
+    <Delete Files="@(Generate -> '%(filename).cs')" />
   </Target>
   <Target Name="AfterBuild"></Target>
   <ItemGroup>
