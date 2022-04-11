@@ -41,18 +41,59 @@
     <Content Include="VendorExt.xml" />
     <Content Include="VendorExt.xslt" />
   </ItemGroup>
-  <UsingTask TaskName="CodeGenerator.LLRPCodeGenerator" AssemblyFile="$(MSBuildProjectDirectory)\..\CodeGenerator\bin\$(Configuration)\CodeGenerator.dll" />
-  <Target Name="BeforeBuild">
-    <Message Text="I want to do stuff" Importance="high"/>
+  
+  <ItemGroup>
+    <Generate Include="LLRPParam.xslt" />
+    <Generate Include="LLRPMsg.xslt" />
+    <Generate Include="LLRPXmlParser.xslt" />
+    <Generate Include="LLRPEnum.xslt" />
+    <Generate Include="LLRPEndPoint.xslt" />
+    <Generate Include="LLRPClient.xslt" />
+    <Generate Include="LLRPNamespace.xslt" />
+    <Generate Include="LLRPBinaryDecoder.xslt" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" IsImplicitlyDefined="true" />
+  </ItemGroup>
+  <!--
+    REFERENCES:
+    - https://docs.microsoft.com/en-us/visualstudio/msbuild/target-build-order?view=vs-2022
+    - ".NET Core SDK is not bringing forward 'BeforeBuild'. Must use, BeforeTargets" https://github.com/dotnet/sdk/issues/7811
+  -->
+  <Target Name="SampleBeforeBuild" BeforeTargets="Build">
+    <!--
+      HINT: Because Inputs/Outputs are compared and Outputs must have one ore more files missing,
+      it may be best to delete all of Outputs' "@(Generate-'%(filename).cs')" files first.
+    -->
+    <Message Text="Sample Before Build..." Importance="high" />
+    <Message Text="INPUTS: @(Generate); templates.xslt" Importance="high" />
+    <Message Text="OUTPUTS: @(Generate -> '%(filename).cs')" Importance="high" />
   </Target>
   
-  <Target Name="BeforeBuild" Inputs="@(Generate); templates.xslt" Outputs="@(Generate -> '%(filename).cs')">
+  <UsingTask TaskName="CodeGenerator.LLRPCodeGenerator" AssemblyFile="$(MSBuildProjectDirectory)\..\CodeGenerator\bin\$(Configuration)\CodeGenerator.dll" />
+  <Target Name="GenerateFromXsltBeforeBuild"
+          BeforeTargets="Build"
+          Inputs="@(Generate); templates.xslt"
+          Outputs="@(Generate -> '%(filename).cs')">
 
-    <Message Text="_FilesToCopy: @(_FilesToCopy)" Importance="high"/>
+    <Message Text="Generating code from XSLT..." Importance="high" />
     
-    <!--<CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="..\..\Definitions\core\llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -&gt; \'%(filename).cs\')')" />-->
+    <CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="llrp-1x0-def.xml"
+                                     XSLT_FILE="@(Generate)"
+                                     OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')"
+                                     Condition="!Exists('@(Generate -&gt; \'%(filename).cs\')')" />
+  </Target>
+          
+  <!-- OLD METHOD for .NET Framework -->
+  <!--
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <UsingTask TaskName="CodeGenerator.LLRPCodeGenerator" AssemblyFile="$(MSBuildProjectDirectory)\..\CodeGenerator\bin\$(Configuration)\CodeGenerator.dll" />
+  <Target Name="BeforeBuild" Inputs="@(Generate); templates.xslt" Outputs="@(Generate -> '%(filename).cs')">
+    < ! - -<CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="..\..\Definitions\core\llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -&gt; \'%(filename).cs\')')" /> - - >
     <CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -> \'%(filename).cs\')')" />
   </Target>
+  -->
   <PropertyGroup>
     <CleanDependsOn>
         $(CleanDependsOn);
@@ -64,18 +105,9 @@
   <Target Name="CleanGeneratedCode">
     <Delete Files="@(Generate -> '%(filename).cs')" />
   </Target>
-  <Target Name="AfterBuild"></Target>
-  <ItemGroup>
-    <Generate Include="LLRPParam.xslt" />
-    <Generate Include="LLRPMsg.xslt" />
-    <Generate Include="LLRPXmlParser.xslt" />
-    <Generate Include="LLRPEnum.xslt" />
-    <Generate Include="LLRPEndPoint.xslt" />
-    <Generate Include="LLRPClient.xslt" />
-    <Generate Include="LLRPNamespace.xslt" />
-    <Generate Include="LLRPBinaryDecoder.xslt" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" IsImplicitlyDefined="true" />
-  </ItemGroup>
+  <Target Name="AfterBuild">
+    <!--
+    This will never be executed: https://github.com/dotnet/msbuild/issues/1680
+    -->
+  </Target>
 </Project>

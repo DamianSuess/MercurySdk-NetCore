@@ -430,11 +430,9 @@ namespace Org.LLRP.LTK.LLRPV1
     </xsl:for-each>
                 default:
                     break;
-                }
             }
-
-            #endregion
-
+        }
+        #endregion
     <xsl:for-each select="llrp:messageDefinition">
       <xsl:variable name="msgName">
         <xsl:value-of select="@name"/>
@@ -448,19 +446,19 @@ namespace Org.LLRP.LTK.LLRPV1
         </xsl:if>
       </xsl:variable>
       <xsl:if test ="contains($msgName, '_RESPONSE')">
-            /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>summary<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
-            /// <xsl:value-of select="$shorten_msgName"/> message call.
-            /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>/summary<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
-            /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>param name="msg"<xsl:text disable-output-escaping="yes">&gt;</xsl:text>MSG_<xsl:value-of select="$shorten_msgName"/> to send to reader.<xsl:text disable-output-escaping="yes">&lt;</xsl:text>/param<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
-            /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>param name="msg_err"<xsl:text disable-output-escaping="yes">&gt;</xsl:text>MSG_ERROR_MESSAGE. output.<xsl:text disable-output-escaping="yes">&lt;</xsl:text>/param<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
-            /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>param name="time_out"<xsl:text disable-output-escaping="yes">&gt;</xsl:text>Fuction call time out in millisecond.<xsl:text disable-output-escaping="yes">&lt;</xsl:text>/param<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
-            /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>returns<xsl:text disable-output-escaping="yes">&gt;</xsl:text>If the function is called successfully, return MSG_<xsl:value-of select="@name"/>. Otherwise, null is returned.<xsl:text disable-output-escaping="yes">&lt;</xsl:text>/returns<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
-            public MSG_<xsl:value-of select="@name"/><xsl:text> </xsl:text> <xsl:value-of select="$shorten_msgName"/>(MSG_<xsl:value-of select="$shorten_msgName"/> msg, out MSG_ERROR_MESSAGE msg_err, int time_out)
-            {
-                Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.<xsl:value-of select="@name"/>);
-                Message rsp = trans.Transact(msg, out msg_err, time_out);
-                return (MSG_<xsl:value-of select="@name"/>) rsp;
-            }
+        /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>summary<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+        /// <xsl:value-of select="$shorten_msgName"/> message call.
+        /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>/summary<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+        /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>param name="msg"<xsl:text disable-output-escaping="yes">&gt;</xsl:text>MSG_<xsl:value-of select="$shorten_msgName"/> to send to reader.<xsl:text disable-output-escaping="yes">&lt;</xsl:text>/param<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+        /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>param name="msg_err"<xsl:text disable-output-escaping="yes">&gt;</xsl:text>MSG_ERROR_MESSAGE. output.<xsl:text disable-output-escaping="yes">&lt;</xsl:text>/param<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+        /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>param name="time_out"<xsl:text disable-output-escaping="yes">&gt;</xsl:text>Fuction call time out in millisecond.<xsl:text disable-output-escaping="yes">&lt;</xsl:text>/param<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+        /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>returns<xsl:text disable-output-escaping="yes">&gt;</xsl:text>If the function is called successfully, return MSG_<xsl:value-of select="@name"/>. Otherwise, null is returned.<xsl:text disable-output-escaping="yes">&lt;</xsl:text>/returns<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+        public MSG_<xsl:value-of select="@name"/><xsl:text> </xsl:text> <xsl:value-of select="$shorten_msgName"/>(MSG_<xsl:value-of select="$shorten_msgName"/> msg, out MSG_ERROR_MESSAGE msg_err, int time_out)
+        {
+            Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.<xsl:value-of select="@name"/>);
+            Message rsp = trans.Transact(msg, out msg_err, time_out);
+            return (MSG_<xsl:value-of select="@name"/>) rsp;
+        }
       </xsl:if>
       <xsl:if test="contains($msgName, 'ENABLE_EVENTS_AND_REPORTS')">
         /// <xsl:text disable-output-escaping="yes">&lt;</xsl:text>summary<xsl:text disable-output-escaping="yes">&gt;</xsl:text>

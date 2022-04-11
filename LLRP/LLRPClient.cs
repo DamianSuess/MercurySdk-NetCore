@@ -1,4 +1,5 @@
-﻿/*
+
+/*
 ***************************************************************************
 *  Copyright 2008 Impinj, Inc.
 *
@@ -37,82 +38,86 @@
 *
 * Description:     This file contains implementation of LLRP client. LLRP
 *                 client is used to build LLRP based application
+* Updates:
+* 2022-04-06 [DJS]
+*   - Removed reference to deprecated library, System.Runtime.Remoting
+*   - Realigned tabbing and spacing for code cleanliness and errors
 ***************************************************************************
 */
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
+//// using System.Runtime.Remoting;  // Not suppored in .NET Core
+using System.Collections;
+using System.Xml;
+using System.Xml.Serialization;
+using System.Data;
+
 using Org.LLRP.LTK.LLRPV1.DataType;
 
 namespace Org.LLRP.LTK.LLRPV1
 {
+
     //delegates for sending asyn. messages
     public delegate void delegateReaderEventNotification(MSG_READER_EVENT_NOTIFICATION msg);
-
     public delegate void delegateRoAccessReport(MSG_RO_ACCESS_REPORT msg);
-
     public delegate void delegateKeepAlive(MSG_KEEPALIVE msg);
 
     //Delegates for sending encapsulated asyn. messages
     public delegate void delegateEncapReaderEventNotification(ENCAPED_READER_EVENT_NOTIFICATION msg);
-
     public delegate void delegateEncapRoAccessReport(ENCAPED_RO_ACCESS_REPORT msg);
-
     public delegate void delegateEncapKeepAlive(ENCAPED_KEEP_ALIVE msg);
 
     [Serializable]
+    /// <summary>
+    /// Device proxy for host application to connect with LLRP reader
+    /// </summary>
     public class LLRPClient : IDisposable
     {
         #region Network Parameters
-
         private CommunicationInterface cI;
         private int LLRP_TCP_PORT = 5084;
         private int MSG_TIME_OUT = 10000;
-
-        #endregion Network Parameters
+        #endregion
 
         #region Private Thread Objects
-
         private Thread notificationThread;
         private BlockingQueue notificationQueue;
-
-        #endregion Private Thread Objects
+        #endregion
 
         #region Private Members
-
         private ManualResetEvent conn_evt;
         private ENUM_ConnectionAttemptStatusType conn_status_type;
         private string reader_name;
         private bool connected = false;
-
-        #endregion Private Members
+        #endregion
 
         public event delegateReaderEventNotification OnReaderEventNotification;
-
         public event delegateRoAccessReport OnRoAccessReportReceived;
-
         public event delegateKeepAlive OnKeepAlive;
 
         public event delegateEncapReaderEventNotification OnEncapedReaderEventNotification;
-
         public event delegateEncapRoAccessReport OnEncapedRoAccessReportReceived;
-
         public event delegateEncapKeepAlive OnEncapedKeepAlive;
 
         protected void TriggerReaderEventNotification(MSG_READER_EVENT_NOTIFICATION msg)
         {
-            try
-            {
+            try {
                 if (OnReaderEventNotification != null) OnReaderEventNotification(msg);
                 if (OnEncapedReaderEventNotification != null)
                 {
-                    ENCAPED_READER_EVENT_NOTIFICATION ntf = new ENCAPED_READER_EVENT_NOTIFICATION();
-                    ntf.reader = reader_name;
-                    ntf.ntf = msg;
+                ENCAPED_READER_EVENT_NOTIFICATION ntf = new ENCAPED_READER_EVENT_NOTIFICATION();
+                ntf.reader = reader_name;
+                ntf.ntf = msg;
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         protected void TriggerRoAccessReport(MSG_RO_ACCESS_REPORT msg)
@@ -129,12 +134,14 @@ namespace Org.LLRP.LTK.LLRPV1
                     OnEncapedRoAccessReportReceived(report);
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         protected void TriggerKeepAlive(MSG_KEEPALIVE msg)
         {
-            try
+            try 
             {
                 if (OnKeepAlive != null) OnKeepAlive(msg);
                 if (OnEncapedKeepAlive != null)
@@ -146,25 +153,26 @@ namespace Org.LLRP.LTK.LLRPV1
                     OnEncapedKeepAlive(keepalive);
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         #region Properties
-
         /// <summary>
         /// Reader name.
         /// </summary>
         public string ReaderName
         {
-            get { return reader_name; }
+            get{return reader_name;}
         }
-
+    
         public bool IsConnected
         {
-            get { return connected; }
+            get{return connected;}
         }
 
-        #endregion Properties
+        #endregion
 
         #region Assistance Functions
 
@@ -184,7 +192,7 @@ namespace Org.LLRP.LTK.LLRPV1
             return MSG_TIME_OUT;
         }
 
-        #endregion Assistance Functions
+        #endregion
 
         #region Methods
 
@@ -225,26 +233,28 @@ namespace Org.LLRP.LTK.LLRPV1
                 {
                     while (true)
                     {
-                        Message msg = (Message)notificationQueue.Dequeue();
-                        switch ((ENUM_LLRP_MSG_TYPE)msg.MSG_TYPE)
+                        Message msg = (Message) notificationQueue.Dequeue();
+                        switch ((ENUM_LLRP_MSG_TYPE) msg.MSG_TYPE)
                         {
                             case ENUM_LLRP_MSG_TYPE.RO_ACCESS_REPORT:
-                                TriggerRoAccessReport((MSG_RO_ACCESS_REPORT)msg);
-                                break;
-
+                            TriggerRoAccessReport((MSG_RO_ACCESS_REPORT) msg);
+                            break;
                             case ENUM_LLRP_MSG_TYPE.KEEPALIVE:
-                                TriggerKeepAlive((MSG_KEEPALIVE)msg);
-                                break;
-
+                            TriggerKeepAlive((MSG_KEEPALIVE) msg);
+                            break;
                             case ENUM_LLRP_MSG_TYPE.READER_EVENT_NOTIFICATION:
-                                TriggerReaderEventNotification((MSG_READER_EVENT_NOTIFICATION)msg);
-                                break;
+                            TriggerReaderEventNotification((MSG_READER_EVENT_NOTIFICATION)msg);
+                            break;
                         }
                     }
                 }
                 catch (InvalidOperationException ex)
                 {
-                    if ("Queue Closed" == ex.Message) { } else throw;
+                    if ("Queue Closed" == ex.Message)
+                    {
+                    }
+                    else
+                        throw;
                 }
             }
         }
@@ -264,7 +274,7 @@ namespace Org.LLRP.LTK.LLRPV1
             status = (ENUM_ConnectionAttemptStatusType)(-1);
             cI.OnFrameReceived += new delegateMessageReceived(ProcessFrame);
 
-            try { cI.Open(llrp_reader_name, LLRP_TCP_PORT, timeout); }
+            try{ cI.Open(llrp_reader_name, LLRP_TCP_PORT, timeout);}
             catch (Exception e)
             {
                 cI.OnFrameReceived -= new delegateMessageReceived(ProcessFrame);
@@ -275,7 +285,7 @@ namespace Org.LLRP.LTK.LLRPV1
             if (conn_evt.WaitOne(timeout, false))
             {
                 status = conn_status_type;
-                if (status == ENUM_ConnectionAttemptStatusType.Success)
+                if(status== ENUM_ConnectionAttemptStatusType.Success)
                 {
                     connected = true;
                     return connected;
@@ -293,7 +303,7 @@ namespace Org.LLRP.LTK.LLRPV1
             {
             }
 
-            connected = false;
+            connected  = false;
             return connected;
         }
 
@@ -316,18 +326,22 @@ namespace Org.LLRP.LTK.LLRPV1
                 {
                     cI.Close();
                 }
-                catch { }
-                finally
+                catch
                 {
+                }
+	              finally
+	              {
                     cI.OnFrameReceived -= new delegateMessageReceived(ProcessFrame);
                     connected = false;
-                }
-
-                try
-                {
+	              }
+            
+	              try
+	              {
                     notificationQueue.Close();
+	              }
+                catch
+                {
                 }
-                catch { }
 
                 return ret;
             }
@@ -351,36 +365,37 @@ namespace Org.LLRP.LTK.LLRPV1
             int cursor = 0;
             int length;
 
-            switch ((ENUM_LLRP_MSG_TYPE)msg_type)
+            switch((ENUM_LLRP_MSG_TYPE)msg_type)
             {
-                case ENUM_LLRP_MSG_TYPE.RO_ACCESS_REPORT:
-                    try
-                    {
-                        bArr = Util.ConvertByteArrayToBitArray(data);
-                        length = bArr.Count;
-                        MSG_RO_ACCESS_REPORT rpt = MSG_RO_ACCESS_REPORT.FromBitArray(ref bArr, ref cursor, length);
-                        notificationQueue.Enqueue(rpt);
-                    }
-                    catch
-                    {
-                    }
-
-                    break;
-
+    
+                  case ENUM_LLRP_MSG_TYPE.RO_ACCESS_REPORT:
+                      try
+                      {
+                          bArr = Util.ConvertByteArrayToBitArray(data);
+                          length = bArr.Count;
+                          MSG_RO_ACCESS_REPORT rpt = MSG_RO_ACCESS_REPORT.FromBitArray(ref bArr, ref cursor, length);
+                          notificationQueue.Enqueue(rpt);
+                      }
+                      catch
+                      {
+                      }
+              
+                  break;
+        
                 case ENUM_LLRP_MSG_TYPE.KEEPALIVE:
-                    try
-                    {
-                        bArr = Util.ConvertByteArrayToBitArray(data);
-                        length = bArr.Count;
-                        MSG_KEEPALIVE msg = MSG_KEEPALIVE.FromBitArray(ref bArr, ref cursor, length);
-                        notificationQueue.Enqueue(msg);
-                    }
-                    catch
-                    {
-                    }
-
-                    break;
-
+                try
+                {
+                    bArr = Util.ConvertByteArrayToBitArray(data);
+                    length = bArr.Count;
+                    MSG_KEEPALIVE msg = MSG_KEEPALIVE.FromBitArray(ref bArr, ref cursor, length);
+                    notificationQueue.Enqueue(msg);
+                }
+                catch
+                {
+                }
+          
+                break;
+        
                 case ENUM_LLRP_MSG_TYPE.READER_EVENT_NOTIFICATION:
                     try
                     {
@@ -400,16 +415,15 @@ namespace Org.LLRP.LTK.LLRPV1
                     catch
                     {
                     }
-
+              
                     break;
-
+        
                 default:
                     break;
             }
         }
-
-        #endregion Methods
-
+        #endregion
+    
         /// <summary>
         /// Send Customized Message to Reader
         /// </summary>
@@ -417,13 +431,13 @@ namespace Org.LLRP.LTK.LLRPV1
         /// <param name="msg_err">Error message. output</param>
         /// <param name="time_out">Timeout in millisecond.</param>
         /// <returns>Custom Message</returns>
-        public MSG_CUSTOM_MESSAGE CUSTOM_MESSAGE(MSG_CUSTOM_MESSAGE msg, out MSG_ERROR_MESSAGE msg_err, int time_out)
+        public MSG_CUSTOM_MESSAGE  CUSTOM_MESSAGE(MSG_CUSTOM_MESSAGE msg, out MSG_ERROR_MESSAGE msg_err, int time_out)
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.CUSTOM_MESSAGE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_CUSTOM_MESSAGE)rsp;
+            return (MSG_CUSTOM_MESSAGE) rsp;
         }
-
+      
         /// <summary>
         /// GET_READER_CAPABILITIES message call.
         /// </summary>
@@ -435,9 +449,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.GET_READER_CAPABILITIES_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_GET_READER_CAPABILITIES_RESPONSE)rsp;
+            return (MSG_GET_READER_CAPABILITIES_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// ADD_ROSPEC message call.
         /// </summary>
@@ -449,9 +463,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.ADD_ROSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_ADD_ROSPEC_RESPONSE)rsp;
+            return (MSG_ADD_ROSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// DELETE_ROSPEC message call.
         /// </summary>
@@ -463,9 +477,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.DELETE_ROSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_DELETE_ROSPEC_RESPONSE)rsp;
+            return (MSG_DELETE_ROSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// START_ROSPEC message call.
         /// </summary>
@@ -477,9 +491,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.START_ROSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_START_ROSPEC_RESPONSE)rsp;
+            return (MSG_START_ROSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// STOP_ROSPEC message call.
         /// </summary>
@@ -491,9 +505,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.STOP_ROSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_STOP_ROSPEC_RESPONSE)rsp;
+            return (MSG_STOP_ROSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// ENABLE_ROSPEC message call.
         /// </summary>
@@ -505,9 +519,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.ENABLE_ROSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_ENABLE_ROSPEC_RESPONSE)rsp;
+            return (MSG_ENABLE_ROSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// DISABLE_ROSPEC message call.
         /// </summary>
@@ -519,9 +533,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.DISABLE_ROSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_DISABLE_ROSPEC_RESPONSE)rsp;
+            return (MSG_DISABLE_ROSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// GET_ROSPECS message call.
         /// </summary>
@@ -533,9 +547,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.GET_ROSPECS_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_GET_ROSPECS_RESPONSE)rsp;
+            return (MSG_GET_ROSPECS_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// ADD_ACCESSSPEC message call.
         /// </summary>
@@ -547,9 +561,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.ADD_ACCESSSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_ADD_ACCESSSPEC_RESPONSE)rsp;
+            return (MSG_ADD_ACCESSSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// DELETE_ACCESSSPEC message call.
         /// </summary>
@@ -561,9 +575,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.DELETE_ACCESSSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_DELETE_ACCESSSPEC_RESPONSE)rsp;
+            return (MSG_DELETE_ACCESSSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// ENABLE_ACCESSSPEC message call.
         /// </summary>
@@ -575,9 +589,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.ENABLE_ACCESSSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_ENABLE_ACCESSSPEC_RESPONSE)rsp;
+            return (MSG_ENABLE_ACCESSSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// DISABLE_ACCESSSPEC message call.
         /// </summary>
@@ -589,9 +603,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.DISABLE_ACCESSSPEC_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_DISABLE_ACCESSSPEC_RESPONSE)rsp;
+            return (MSG_DISABLE_ACCESSSPEC_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// GET_ACCESSSPECS message call.
         /// </summary>
@@ -603,9 +617,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.GET_ACCESSSPECS_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_GET_ACCESSSPECS_RESPONSE)rsp;
+            return (MSG_GET_ACCESSSPECS_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// GET_READER_CONFIG message call.
         /// </summary>
@@ -617,9 +631,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.GET_READER_CONFIG_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_GET_READER_CONFIG_RESPONSE)rsp;
+            return (MSG_GET_READER_CONFIG_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// SET_READER_CONFIG message call.
         /// </summary>
@@ -631,9 +645,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.SET_READER_CONFIG_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_SET_READER_CONFIG_RESPONSE)rsp;
+            return (MSG_SET_READER_CONFIG_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// CLOSE_CONNECTION message call.
         /// </summary>
@@ -645,9 +659,9 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.CLOSE_CONNECTION_RESPONSE);
             Message rsp = trans.Transact(msg, out msg_err, time_out);
-            return (MSG_CLOSE_CONNECTION_RESPONSE)rsp;
+            return (MSG_CLOSE_CONNECTION_RESPONSE) rsp;
         }
-
+      
         /// <summary>
         /// Get LLRP report
         /// </summary>
@@ -660,7 +674,7 @@ namespace Org.LLRP.LTK.LLRPV1
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.GET_REPORT);
             trans.Send(msg);
         }
-
+      
         /// <summary>
         /// Keep alive acknowledgement
         /// </summary>
@@ -673,7 +687,7 @@ namespace Org.LLRP.LTK.LLRPV1
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.KEEPALIVE_ACK);
             trans.Send(msg);
         }
-
+      
         /// <summary>
         /// Enable events and reports
         /// </summary>
@@ -686,5 +700,7 @@ namespace Org.LLRP.LTK.LLRPV1
             Transaction trans = new Transaction(cI, msg.MSG_ID, ENUM_LLRP_MSG_TYPE.ENABLE_EVENTS_AND_REPORTS);
             trans.Send(msg);
         }
+      
     }
 }
+  

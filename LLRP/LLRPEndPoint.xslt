@@ -61,44 +61,40 @@ namespace Org.LLRP.LTK.LLRPV1
 
     public class RAW_Message
     {
-    public short version;
-    public short msg_type;
-    public int msg_id;
-    public byte[] msg_body;
+        public short version;
+        public short msg_type;
+        public int msg_id;
+        public byte[] msg_body;
 
-    public RAW_Message(short ver, short type, int id, byte[] data)
-    {
-    version = ver;
-    msg_id = id;
-    msg_type = type;
+        public RAW_Message(short ver, short type, int id, byte[] data)
+        {
+            version = ver;
+            msg_id = id;
+            msg_type = type;
 
-    msg_body = new byte[data.Length];
-    Array.Copy(data, msg_body, data.Length);
-    }
+            msg_body = new byte[data.Length];
+            Array.Copy(data, msg_body, data.Length);
+        }
     }
 
     //add comments
     public class LLRPEndPoint : IDisposable
     {
-    #region members
-    private CommunicationInterface cI;
-    private int LLRP1_TCP_PORT = 5084;
-    private ManualResetEvent transactEvt;
+        private CommunicationInterface cI;
+        private int LLRP1_TCP_PORT = 5084;
+        private ManualResetEvent transactEvt;
 
-    private short version;
-    private short msg_type;
-    private int msg_id;
-    private byte[] data;
+        private short version;
+        private short msg_type;
+        private int msg_id;
+        private byte[] data;
 
-    private bool b_enqueue = false;
-    private Queue<xsl:text disable-output-escaping="yes">&lt;RAW_Message&gt;</xsl:text>raw_message_queue;
+        private bool b_enqueue = false;
+        private Queue<xsl:text disable-output-escaping="yes">&lt;RAW_Message&gt;</xsl:text>raw_message_queue;
 
         public event delegateClientConnected OnClientConnected;
         public event delegateMessageReceived OnMessageReceived;
 
-        #endregion
-
-        #region Methods
         public LLRPEndPoint()
         {
         }
@@ -142,122 +138,119 @@ namespace Org.LLRP.LTK.LLRPV1
 
         void cI_OnMessageReceived(short ver, short msg_type, int msg_id, byte[] msg_data)
         {
-            if ( (msg_type == 100) || (msg_type == this.msg_type  <xsl:text disable-output-escaping="yes">&amp;&amp;</xsl:text> msg_id == this.msg_id))
-    {
-    Array.Copy(msg_data, this.data, msg_data.Length);
-    this.msg_type = msg_type;
-    this.msg_id = msg_id;
-    this.version = ver;
-    transactEvt.Set();
-    }
+            if ( (msg_type == 100) || (msg_type == this.msg_type <xsl:text disable-output-escaping="yes">&amp;&amp;</xsl:text> msg_id == this.msg_id))
+            {
+                Array.Copy(msg_data, this.data, msg_data.Length);
+                this.msg_type = msg_type;
+                this.msg_id = msg_id;
+                this.version = ver;
+                transactEvt.Set();
+            }
 
-    if(OnMessageReceived!=null)
-    {
-    delegateMessageReceived dmr = new delegateMessageReceived(triggerMessageReceived);
-    dmr.BeginInvoke(ver, msg_type, msg_id, msg_data, null, null);
-    }
+            if(OnMessageReceived!=null)
+            {
+                delegateMessageReceived dmr = new delegateMessageReceived(triggerMessageReceived);
+                dmr.BeginInvoke(ver, msg_type, msg_id, msg_data, null, null);
+            }
 
-    lock (this)
-    {
-    if (b_enqueue)
-    {
-    raw_message_queue.Enqueue(new RAW_Message(ver, msg_type, msg_id, msg_data));
-    b_enqueue = false;
-    }
-    }
+            lock (this)
+            {
+                if (b_enqueue)
+                {
+                    raw_message_queue.Enqueue(new RAW_Message(ver, msg_type, msg_id, msg_data));
+                    b_enqueue = false;
+                }
+            }
 
-    }
-    public void Close()
-    {
-    cI.Close();
-    }
+        }
 
-    public void Dispose()
-    {
-    this.Close();
-    }
+        public void Close()
+        {
+            cI.Close();
+        }
 
-    #endregion
+        public void Dispose()
+        {
+            this.Close();
+        }
 
-    public void SendMessage(Message msg)
-    {
-    bool[] bit_array = msg.ToBitArray();
-    byte[] data = Util.ConvertBitArrayToByteArray(bit_array);
+        public void SendMessage(Message msg)
+        {
+            bool[] bit_array = msg.ToBitArray();
+            byte[] data = Util.ConvertBitArrayToByteArray(bit_array);
     
-    lock(this)
-    {
-     b_enqueue = true;
-    }
+            lock(this)
+            {
+                b_enqueue = true;
+            }
     
-    try
-    {
-    Transaction.Send(cI, data);
-    }
-    catch
-    {
-    throw new Exception("Transaction Failed");
-    }
-    }
+            try
+            {
+                Transaction.Send(cI, data);
+            }
+            catch
+            {
+                throw new Exception("Transaction Failed");
+            }
+        }
 
-    public RAW_Message GetMessage()
-    {
-    lock (this)
-    {
-    return raw_message_queue.Dequeue();
-    }
-    }
+        public RAW_Message GetMessage()
+        {
+            lock (this)
+            {
+                return raw_message_queue.Dequeue();
+            }
+        }
     
-    public Message TransactMessage(Message msg, int time_out)
-    {
-    bool[] bit_array = msg.ToBitArray();
-    byte[] data = Util.ConvertBitArrayToByteArray(bit_array);
-    try
-    {
-    transactEvt = new ManualResetEvent(false);
-    Transaction.Send(cI, data);
+        public Message TransactMessage(Message msg, int time_out)
+        {
+            bool[] bit_array = msg.ToBitArray();
+            byte[] data = Util.ConvertBitArrayToByteArray(bit_array);
+            try
+            {
+                transactEvt = new ManualResetEvent(false);
+                Transaction.Send(cI, data);
 
-    msg_id = (int)msg.MSG_ID;
+                msg_id = (int)msg.MSG_ID;
 
-    if (msg.MSG_TYPE != (uint)ENUM_LLRP_MSG_TYPE.CUSTOM_MESSAGE) msg_type = (short)(msg.MSG_TYPE + 10);
-    else
-    msg_type = (short)msg.MSG_TYPE;
+                if (msg.MSG_TYPE != (uint)ENUM_LLRP_MSG_TYPE.CUSTOM_MESSAGE)
+                    msg_type = (short)(msg.MSG_TYPE + 10);
+                else
+                    msg_type = (short)msg.MSG_TYPE;
 
-    if (transactEvt.WaitOne(time_out, false))
-    {
-    BitArray bArr;
-    int length;
-    int cursor = 0;
-    switch ((ENUM_LLRP_MSG_TYPE)msg_type)
-    {
+                if (transactEvt.WaitOne(time_out, false))
+                {
+                    BitArray bArr;
+                    int length;
+                    int cursor = 0;
+                    switch ((ENUM_LLRP_MSG_TYPE)msg_type)
+                    {
     <xsl:for-each select="llrp:messageDefinition">
       <xsl:if test="contains(@name, 'RESPONSE')">
-        case ENUM_LLRP_MSG_TYPE.<xsl:value-of select="@name"/>:
-        {
-        bArr = Util.ConvertByteArrayToBitArray(data);
-        length = bArr.Count;
-        MSG_<xsl:value-of select="@name"/> r_msg = MSG_<xsl:value-of select="@name"/>.FromBitArray(ref bArr, ref cursor, length);
-        return r_msg;
-        }
+                        case ENUM_LLRP_MSG_TYPE.<xsl:value-of select="@name"/>:
+                        {
+                            bArr = Util.ConvertByteArrayToBitArray(data);
+                            length = bArr.Count;
+                            MSG_<xsl:value-of select="@name"/> r_msg = MSG_<xsl:value-of select="@name"/>.FromBitArray(ref bArr, ref cursor, length);
+                            return r_msg;
+                        }
       </xsl:if>
-
     </xsl:for-each>
-    default:
-    return null;
+                        default:
+                            return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch
+            {
+                throw new Exception("Transaction Failed");
+            }
+        }
     }
-    }
-    else
-    {
-    return null;
-    }
-
-    }
-    catch
-    {
-    throw new Exception("Transaction Failed");
-    }
-    }
-
-    }
-    }
+}
   </xsl:template>
 </xsl:stylesheet>

@@ -1,4 +1,4 @@
-/*
+﻿/*
  ***************************************************************************
  *  Copyright 2008 Impinj, Inc.
  *
@@ -36,7 +36,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-//// using System.Runtime.Remoting;
+//// using System.Runtime.Remoting;  // Not suppored in .NET Core
 using System.Collections;
 using System.Xml;
 using System.Xml.Serialization;

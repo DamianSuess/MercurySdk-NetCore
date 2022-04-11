@@ -1,3 +1,4 @@
+
 /*
 ***************************************************************************
 *  Copyright 2007 Impinj, Inc.
@@ -29,19 +30,31 @@
 * Description:     This file contains implementation of LLRP Endpoint. LLRP
 *                  Endpoint is used to build simulator or LLRP based
 *                  application
+*
+* Updates:
+* 2022-04-06 [DJS]
+*   - Removed reference to deprecated library, System.Runtime.Remoting
+*   - Realigned tabbing and spacing for code cleanliness and errors
 ***************************************************************************
 */
 
 using System;
-
-//// using System.Runtime.Remoting;
-using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
+//// using System.Runtime.Remoting;  // Not suppored in .NET Core
+using System.Collections;
+using System.Xml;
+using System.Xml.Serialization;
+using System.Data;
+
 using Org.LLRP.LTK.LLRPV1.DataType;
 
 namespace Org.LLRP.LTK.LLRPV1
 {
+
     public class RAW_Message
     {
         public short version;
@@ -63,8 +76,6 @@ namespace Org.LLRP.LTK.LLRPV1
     //add comments
     public class LLRPEndPoint : IDisposable
     {
-        #region members
-
         private CommunicationInterface cI;
         private int LLRP1_TCP_PORT = 5084;
         private ManualResetEvent transactEvt;
@@ -75,15 +86,10 @@ namespace Org.LLRP.LTK.LLRPV1
         private byte[] data;
 
         private bool b_enqueue = false;
-        private Queue<RAW_Message> raw_message_queue;
+        private Queue<RAW_Message>raw_message_queue;
 
         public event delegateClientConnected OnClientConnected;
-
         public event delegateMessageReceived OnMessageReceived;
-
-        #endregion members
-
-        #region Methods
 
         public LLRPEndPoint()
         {
@@ -115,19 +121,20 @@ namespace Org.LLRP.LTK.LLRPV1
             return true;
         }
 
-        private void cI_OnClientConnected()
+        void cI_OnClientConnected()
         {
-            if (OnClientConnected != null) OnClientConnected();
+            if (OnClientConnected != null)
+                OnClientConnected();
         }
 
         private void triggerMessageReceived(short ver, short msg_type, int msg_id, byte[] msg_data)
         {
-            if (OnMessageReceived != null) OnMessageReceived(ver, msg_type, msg_id, msg_data);
+            if(OnMessageReceived!=null)OnMessageReceived(ver, msg_type, msg_id, msg_data);
         }
 
-        private void cI_OnMessageReceived(short ver, short msg_type, int msg_id, byte[] msg_data)
+        void cI_OnMessageReceived(short ver, short msg_type, int msg_id, byte[] msg_data)
         {
-            if ((msg_type == 100) || (msg_type == this.msg_type && msg_id == this.msg_id))
+            if ( (msg_type == 100) || (msg_type == this.msg_type && msg_id == this.msg_id))
             {
                 Array.Copy(msg_data, this.data, msg_data.Length);
                 this.msg_type = msg_type;
@@ -136,7 +143,7 @@ namespace Org.LLRP.LTK.LLRPV1
                 transactEvt.Set();
             }
 
-            if (OnMessageReceived != null)
+            if(OnMessageReceived!=null)
             {
                 delegateMessageReceived dmr = new delegateMessageReceived(triggerMessageReceived);
                 dmr.BeginInvoke(ver, msg_type, msg_id, msg_data, null, null);
@@ -150,6 +157,7 @@ namespace Org.LLRP.LTK.LLRPV1
                     b_enqueue = false;
                 }
             }
+
         }
 
         public void Close()
@@ -162,18 +170,16 @@ namespace Org.LLRP.LTK.LLRPV1
             this.Close();
         }
 
-        #endregion Methods
-
         public void SendMessage(Message msg)
         {
             bool[] bit_array = msg.ToBitArray();
             byte[] data = Util.ConvertBitArrayToByteArray(bit_array);
-
-            lock (this)
+    
+            lock(this)
             {
                 b_enqueue = true;
             }
-
+    
             try
             {
                 Transaction.Send(cI, data);
@@ -191,7 +197,7 @@ namespace Org.LLRP.LTK.LLRPV1
                 return raw_message_queue.Dequeue();
             }
         }
-
+    
         public Message TransactMessage(Message msg, int time_out)
         {
             bool[] bit_array = msg.ToBitArray();
@@ -203,7 +209,8 @@ namespace Org.LLRP.LTK.LLRPV1
 
                 msg_id = (int)msg.MSG_ID;
 
-                if (msg.MSG_TYPE != (uint)ENUM_LLRP_MSG_TYPE.CUSTOM_MESSAGE) msg_type = (short)(msg.MSG_TYPE + 10);
+                if (msg.MSG_TYPE != (uint)ENUM_LLRP_MSG_TYPE.CUSTOM_MESSAGE)
+                    msg_type = (short)(msg.MSG_TYPE + 10);
                 else
                     msg_type = (short)msg.MSG_TYPE;
 
@@ -214,6 +221,7 @@ namespace Org.LLRP.LTK.LLRPV1
                     int cursor = 0;
                     switch ((ENUM_LLRP_MSG_TYPE)msg_type)
                     {
+    
                         case ENUM_LLRP_MSG_TYPE.GET_READER_CAPABILITIES_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -221,7 +229,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_GET_READER_CAPABILITIES_RESPONSE r_msg = MSG_GET_READER_CAPABILITIES_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.ADD_ROSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -229,7 +237,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_ADD_ROSPEC_RESPONSE r_msg = MSG_ADD_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.DELETE_ROSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -237,7 +245,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_DELETE_ROSPEC_RESPONSE r_msg = MSG_DELETE_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.START_ROSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -245,7 +253,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_START_ROSPEC_RESPONSE r_msg = MSG_START_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.STOP_ROSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -253,7 +261,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_STOP_ROSPEC_RESPONSE r_msg = MSG_STOP_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.ENABLE_ROSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -261,7 +269,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_ENABLE_ROSPEC_RESPONSE r_msg = MSG_ENABLE_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.DISABLE_ROSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -269,7 +277,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_DISABLE_ROSPEC_RESPONSE r_msg = MSG_DISABLE_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.GET_ROSPECS_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -277,7 +285,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_GET_ROSPECS_RESPONSE r_msg = MSG_GET_ROSPECS_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.ADD_ACCESSSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -285,7 +293,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_ADD_ACCESSSPEC_RESPONSE r_msg = MSG_ADD_ACCESSSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.DELETE_ACCESSSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -293,7 +301,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_DELETE_ACCESSSPEC_RESPONSE r_msg = MSG_DELETE_ACCESSSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.ENABLE_ACCESSSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -301,7 +309,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_ENABLE_ACCESSSPEC_RESPONSE r_msg = MSG_ENABLE_ACCESSSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.DISABLE_ACCESSSPEC_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -309,7 +317,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_DISABLE_ACCESSSPEC_RESPONSE r_msg = MSG_DISABLE_ACCESSSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.GET_ACCESSSPECS_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -317,7 +325,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_GET_ACCESSSPECS_RESPONSE r_msg = MSG_GET_ACCESSSPECS_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.GET_READER_CONFIG_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -325,7 +333,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_GET_READER_CONFIG_RESPONSE r_msg = MSG_GET_READER_CONFIG_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.SET_READER_CONFIG_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -333,7 +341,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_SET_READER_CONFIG_RESPONSE r_msg = MSG_SET_READER_CONFIG_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         case ENUM_LLRP_MSG_TYPE.CLOSE_CONNECTION_RESPONSE:
                         {
                             bArr = Util.ConvertByteArrayToBitArray(data);
@@ -341,7 +349,7 @@ namespace Org.LLRP.LTK.LLRPV1
                             MSG_CLOSE_CONNECTION_RESPONSE r_msg = MSG_CLOSE_CONNECTION_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
                             return r_msg;
                         }
-
+      
                         default:
                             return null;
                     }
@@ -358,3 +366,4 @@ namespace Org.LLRP.LTK.LLRPV1
         }
     }
 }
+  
