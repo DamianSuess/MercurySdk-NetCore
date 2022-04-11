@@ -7,6 +7,7 @@
     <AssemblyOriginatorKeyFile>Properties\llrp.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <WarningLevel>1</WarningLevel>
@@ -41,9 +42,16 @@
     <Content Include="VendorExt.xslt" />
   </ItemGroup>
   <UsingTask TaskName="CodeGenerator.LLRPCodeGenerator" AssemblyFile="$(MSBuildProjectDirectory)\..\CodeGenerator\bin\$(Configuration)\CodeGenerator.dll" />
+  <Target Name="BeforeBuild">
+    <Message Text="I want to do stuff" Importance="high"/>
+  </Target>
+  
   <Target Name="BeforeBuild" Inputs="@(Generate); templates.xslt" Outputs="@(Generate -> '%(filename).cs')">
+
+    <Message Text="_FilesToCopy: @(_FilesToCopy)" Importance="high"/>
+    
     <!--<CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="..\..\Definitions\core\llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -&gt; \'%(filename).cs\')')" />-->
-    <CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -&gt; \'%(filename).cs\')')" />
+    <CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -> \'%(filename).cs\')')" />
   </Target>
   <PropertyGroup>
     <CleanDependsOn>
@@ -66,5 +74,8 @@
     <Generate Include="LLRPClient.xslt" />
     <Generate Include="LLRPNamespace.xslt" />
     <Generate Include="LLRPBinaryDecoder.xslt" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" IsImplicitlyDefined="true" />
   </ItemGroup>
 </Project>

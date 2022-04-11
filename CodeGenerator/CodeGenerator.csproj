@@ -4,12 +4,15 @@
     <OutputType>Library</OutputType>
     <StartupObject></StartupObject>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AllowPackageReferenceWithVersion>true</AllowPackageReferenceWithVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.1.0" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.1.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0" IsImplicitlyDefined="true" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.Core" />
   </ItemGroup>
 </Project>

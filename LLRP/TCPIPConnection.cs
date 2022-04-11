@@ -36,7 +36,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Runtime.Remoting;
+//// using System.Runtime.Remoting;
 using System.Collections;
 using System.Xml;
 using System.Xml.Serialization;
@@ -120,9 +120,9 @@ namespace Org.LLRP.LTK.LLRPV1
             {
                 throw new LLRPNetworkException("Unable to connect to specified reader in specified time period.");
             }
+
             return true;
         }
-
 
         /// <summary>
         /// Open non-block network connection.
@@ -219,6 +219,7 @@ namespace Org.LLRP.LTK.LLRPV1
                     return;
                 }
             }
+
             throw new LLRPNetworkException("Unale to obtain NetStream for read/write");
         }
 
@@ -308,6 +309,7 @@ namespace Org.LLRP.LTK.LLRPV1
                                     message_state = EMessageProcessingState.MESSAGE_BODY;
                                 }
                             }
+
                             break;
                         case EMessageProcessingState.MESSAGE_BODY:
                             // In this state, we are waiting for the body to arrive
@@ -328,6 +330,7 @@ namespace Org.LLRP.LTK.LLRPV1
                                 ReInitializeMessageProcessing();
                                 message_state = EMessageProcessingState.MESSAGE_HEADER;
                             }
+
                             break;
                     }
                 }
@@ -374,6 +377,7 @@ namespace Org.LLRP.LTK.LLRPV1
                     ns.Flush();
                     ns.Write(data, 0, data.Length);
                 }
+
                 return data.Length;
             }
             catch
@@ -493,6 +497,7 @@ namespace Org.LLRP.LTK.LLRPV1
             {
                 return false;
             }
+
             return true;
         }
 
@@ -536,6 +541,7 @@ namespace Org.LLRP.LTK.LLRPV1
                 {
                     ns.Write(data, 0, data.Length);
                 }
+
                 return data.Length;
             }
             catch

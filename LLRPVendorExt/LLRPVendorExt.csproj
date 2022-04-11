@@ -8,6 +8,7 @@
     <AssemblyOriginatorKeyFile>Properties\llrpVendor.snk</AssemblyOriginatorKeyFile>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <WarningLevel>1</WarningLevel>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <None Include="templates.xslt.bak" />

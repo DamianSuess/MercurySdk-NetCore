@@ -3,57 +3,61 @@
 	xmlns:llrp="http://www.llrp.org/ltk/schema/core/encoding/binary/1.0">
   <xsl:output omit-xml-declaration='yes' method='text' indent='yes'/>
   <xsl:template match="/llrp:llrpdef">
-    /*
-    ***************************************************************************
-    *  Copyright 2007 Impinj, Inc.
-    *
-    *  Licensed under the Apache License, Version 2.0 (the "License");
-    *  you may not use this file except in compliance with the License.
-    *  You may obtain a copy of the License at
-    *
-    *      http://www.apache.org/licenses/LICENSE-2.0
-    *
-    *  Unless required by applicable law or agreed to in writing, software
-    *  distributed under the License is distributed on an "AS IS" BASIS,
-    *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    *  See the License for the specific language governing permissions and
-    *  limitations under the License.
-    *
-    ***************************************************************************
-    */
+/*
+***************************************************************************
+*  Copyright 2007 Impinj, Inc.
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*
+***************************************************************************
+*/
 
-    /*
-    ***************************************************************************
-    * File Name:       LLRPEndPoint.cs
-    *
-    * Version:         1.0
-    * Author:          Impinj
-    * Organization:    Impinj
-    * Date:            Jan. 18, 2008
-    *
-    * Description:     This file contains implementation of LLRP Endpoint. LLRP
-    *                  Endpoint is used to build simulator or LLRP based
-    *                  application
-    ***************************************************************************
-    */
+/*
+***************************************************************************
+* File Name:       LLRPEndPoint.cs
+*
+* Version:         1.0
+* Author:          Impinj
+* Organization:    Impinj
+* Date:            Jan. 18, 2008
+*
+* Description:     This file contains implementation of LLRP Endpoint. LLRP
+*                  Endpoint is used to build simulator or LLRP based
+*                  application
+*
+* Updates:
+* 2022-04-06 [DJS]
+*   - Removed reference to deprecated library, System.Runtime.Remoting
+*   - Realigned tabbing and spacing for code cleanliness and errors
+***************************************************************************
+*/
 
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+//// using System.Runtime.Remoting;  // Not suppored in .NET Core
+using System.Collections;
+using System.Xml;
+using System.Xml.Serialization;
+using System.Data;
 
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Net;
-    using System.Net.Sockets;
-    using System.Threading;
-    using System.Runtime.Remoting;
-    using System.Collections;
-    using System.Xml;
-    using System.Xml.Serialization;
-    using System.Data;
+using Org.LLRP.LTK.LLRPV1.DataType;
 
-    using Org.LLRP.LTK.LLRPV1.DataType;
-
-    namespace Org.LLRP.LTK.LLRPV1
-    {
+namespace Org.LLRP.LTK.LLRPV1
+{
 
     public class RAW_Message
     {
@@ -89,57 +93,56 @@
     private bool b_enqueue = false;
     private Queue<xsl:text disable-output-escaping="yes">&lt;RAW_Message&gt;</xsl:text>raw_message_queue;
 
+        public event delegateClientConnected OnClientConnected;
+        public event delegateMessageReceived OnMessageReceived;
 
+        #endregion
 
-      public event delegateClientConnected OnClientConnected;
-      public event delegateMessageReceived OnMessageReceived;
+        #region Methods
+        public LLRPEndPoint()
+        {
+        }
 
-      #endregion
+        public bool Create(string llrp_reader_name, bool server)
+        {
+            try
+            {
+                if (server)
+                {
+                    cI = new TCPIPServer();
+                    cI.Open("", LLRP1_TCP_PORT);
+                }
+                else
+                {
+                    cI = new TCPIPClient();
+                    cI.Open(llrp_reader_name, LLRP1_TCP_PORT);
+                }
 
-      #region Methods
-      public LLRPEndPoint()
-      {
-      }
-      public bool Create(string llrp_reader_name, bool server)
-      {
-      try
-      {
-      if (server)
-      {
-      cI = new TCPIPServer();
-      cI.Open("", LLRP1_TCP_PORT);
-      }
-      else
-      {
-      cI = new TCPIPClient();
-      cI.Open(llrp_reader_name, LLRP1_TCP_PORT);
-      }
+                cI.OnFrameReceived += new delegateMessageReceived(cI_OnMessageReceived);
+                cI.OnClientConnected += new delegateClientConnected(cI_OnClientConnected);
+            }
+            catch
+            {
+                return false;
+            }
 
-      cI.OnFrameReceived += new delegateMessageReceived(cI_OnMessageReceived);
-      cI.OnClientConnected += new delegateClientConnected(cI_OnClientConnected);
+            return true;
+        }
 
-      }
-      catch
-      {
-      return false;
-      }
+        void cI_OnClientConnected()
+        {
+            if (OnClientConnected != null)
+                OnClientConnected();
+        }
 
-      return true;
-      }
+        private void triggerMessageReceived(short ver, short msg_type, int msg_id, byte[] msg_data)
+        {
+            if(OnMessageReceived!=null)OnMessageReceived(ver, msg_type, msg_id, msg_data);
+        }
 
-      void cI_OnClientConnected()
-      {
-      if (OnClientConnected != null) OnClientConnected();
-      }
-
-      private void triggerMessageReceived(short ver, short msg_type, int msg_id, byte[] msg_data)
-      {
-      if(OnMessageReceived!=null)OnMessageReceived(ver, msg_type, msg_id, msg_data);
-      }
-
-      void cI_OnMessageReceived(short ver, short msg_type, int msg_id, byte[] msg_data)
-      {
-      if ( (msg_type == 100) || (msg_type == this.msg_type  <xsl:text disable-output-escaping="yes">&amp;&amp;</xsl:text> msg_id == this.msg_id))
+        void cI_OnMessageReceived(short ver, short msg_type, int msg_id, byte[] msg_data)
+        {
+            if ( (msg_type == 100) || (msg_type == this.msg_type  <xsl:text disable-output-escaping="yes">&amp;&amp;</xsl:text> msg_id == this.msg_id))
     {
     Array.Copy(msg_data, this.data, msg_data.Length);
     this.msg_type = msg_type;
