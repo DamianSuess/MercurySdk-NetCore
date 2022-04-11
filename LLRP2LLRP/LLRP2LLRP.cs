@@ -1,10 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-
 using Org.LLRP.LTK.LLRPV1;
-
 using Org.LLRP.LTK.LLRPV1.DataType;
 
 namespace LLRP2LLRP
@@ -18,6 +16,7 @@ namespace LLRP2LLRP
             {
                 throw new MalformedPacket("Message length (" + env.msg_len + ") out-of-range");
             }
+
             int remainder = (int)env.msg_len - LLRPBinaryDecoder.MIN_HDR;
             packet = new byte[env.msg_len];
             Array.Copy(hdr, packet, LLRPBinaryDecoder.MIN_HDR);

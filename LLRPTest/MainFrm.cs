@@ -1,4 +1,4 @@
-/*
+﻿/*
  ***************************************************************************
  *  Copyright 2007 Impinj, Inc.
  *
@@ -17,7 +17,6 @@
  ***************************************************************************
  */
 
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,7 +27,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization.Formatters.Soap;
+//// using System.Runtime.Serialization.Formatters.Soap;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -125,6 +124,7 @@ namespace Org.LLRP.LTK.LLRPV1Test
                             epc = ((PARAM_EPCData)(msg.TagReportData[i].EPCParameter[0])).EPC.ToHexString();
 
                         }
+
                         if (!listBox1.Items.Contains(epc))
                         {
                             try
@@ -136,6 +136,7 @@ namespace Org.LLRP.LTK.LLRPV1Test
                         }
                     }
                 }
+
                 try
                 {
                     textBox2.Text = msg.ToString();
@@ -416,7 +417,6 @@ namespace Org.LLRP.LTK.LLRPV1Test
             msg.AntennaConfiguration[0].AirProtocolInventoryCommandSettings.Add(cmd);
             msg.AntennaConfiguration[0].AntennaID = 0;
 
-
             msg.AntennaConfiguration[0].RFReceiver = new PARAM_RFReceiver();
             msg.AntennaConfiguration[0].RFReceiver.ReceiverSensitivity = 12;
 
@@ -534,7 +534,6 @@ namespace Org.LLRP.LTK.LLRPV1Test
 
         }
 
-
         private void Add_RoSpec()
         {
 
@@ -543,7 +542,6 @@ namespace Org.LLRP.LTK.LLRPV1Test
             msg.ROSpec.CurrentState = ENUM_ROSpecState.Disabled;
             msg.ROSpec.Priority = 0x00;
             msg.ROSpec.ROSpecID = 123;
-
 
             msg.ROSpec.ROBoundarySpec = new PARAM_ROBoundarySpec();
             msg.ROSpec.ROBoundarySpec.ROSpecStartTrigger = new PARAM_ROSpecStartTrigger();
@@ -556,7 +554,6 @@ namespace Org.LLRP.LTK.LLRPV1Test
             msg.ROSpec.ROReportSpec = new PARAM_ROReportSpec();
             msg.ROSpec.ROReportSpec.ROReportTrigger = ENUM_ROReportTriggerType.Upon_N_Tags_Or_End_Of_ROSpec;
             msg.ROSpec.ROReportSpec.N = 2;
-
 
             msg.ROSpec.ROReportSpec.TagReportContentSelector = new PARAM_TagReportContentSelector();
             msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableAccessSpecID = true;
@@ -600,7 +597,6 @@ namespace Org.LLRP.LTK.LLRPV1Test
             }
             else
                 textBox2.Text = "Command time out!";
-
         }
 
         private void Delete_RoSpec()
@@ -722,12 +718,13 @@ namespace Org.LLRP.LTK.LLRPV1Test
                         else
                             textBox2.Text = "The input xml is not a valid LLRP message.";
                     }
-                    catch { textBox2.Text = "The input xml is not a valid LLRP message."; }
+                    catch
+                    {
+                        textBox2.Text = "The input xml is not a valid LLRP message.";
+                    }
                 }
                 else
                 {
-
-
                 }
             }
         }
@@ -739,11 +736,7 @@ namespace Org.LLRP.LTK.LLRPV1Test
 
         private void btnNext_Click(object sender, EventArgs e)
         {
-
- 
-
             return;
-
 
             //object obj;
             //ENUM_LLRP_MSG_TYPE msg_type;
@@ -758,7 +751,6 @@ namespace Org.LLRP.LTK.LLRPV1Test
             //        MessageBox.Show("The input xml is not a valid LLRP message");
             //}
             //catch { MessageBox.Show("The input xml is not a valid LLRP message"); }
-
 
             //xmlarr_index++;
 

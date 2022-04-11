@@ -6,10 +6,6 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LLRP, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\LLRP\bin\Debug\LLRP.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <ProjectReference Include="..\LLRP\LLRP.csproj" />
   </ItemGroup>
 </Project>

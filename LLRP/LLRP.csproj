@@ -56,6 +56,28 @@
   <ItemGroup>
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" IsImplicitlyDefined="true" />
   </ItemGroup>
+
+  <!-- https://docs.microsoft.com/en-us/visualstudio/msbuild/how-to-extend-the-visual-studio-build-process?view=vs-2022#example-builddependson-and-cleandependson -->
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanGeneratedCode;
+    </CleanDependsOn>
+    <RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
+    <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
+  </PropertyGroup>
+
+  <Target Name="CleanGeneratedCode">
+    <Message Text="Cleaning generated files..." Importance="high" />
+    <Delete Files="@(Generate -> '%(filename).cs')" />
+  </Target>
+
+  <Target Name="AfterBuild">
+    <!--
+    This will never be executed: https://github.com/dotnet/msbuild/issues/1680
+    -->
+  </Target>
+
   <!--
     REFERENCES:
     - https://docs.microsoft.com/en-us/visualstudio/msbuild/target-build-order?view=vs-2022
@@ -94,20 +116,4 @@
     <CodeGenerator.LLRPCodeGenerator LLRP_XML_FILE="llrp-1x0-def.xml" XSLT_FILE="@(Generate)" OUTPUT_CS_FILE="@(Generate -> '%(filename).cs')" Condition="!Exists('@(Generate -> \'%(filename).cs\')')" />
   </Target>
   -->
-  <PropertyGroup>
-    <CleanDependsOn>
-        $(CleanDependsOn);
-        CleanGeneratedCode;
-    </CleanDependsOn>
-    <RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
-    <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
-  </PropertyGroup>
-  <Target Name="CleanGeneratedCode">
-    <Delete Files="@(Generate -> '%(filename).cs')" />
-  </Target>
-  <Target Name="AfterBuild">
-    <!--
-    This will never be executed: https://github.com/dotnet/msbuild/issues/1680
-    -->
-  </Target>
 </Project>
