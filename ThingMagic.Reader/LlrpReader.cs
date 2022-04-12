@@ -223,6 +223,7 @@ namespace ThingMagic
                 portNumber = port;
                 llrp = new LLRPClient(portNumber);
             }
+
             hostName = host;
         }
 
@@ -253,6 +254,7 @@ namespace ThingMagic
                     {
                         ConnectionTimeOut = 10100;
                     }
+
                     llrp.Open(hostName, ConnectionTimeOut, out status);
 
                     //LTK is taking care of waiting for READER_EVENT_NOTIFICATION verification
@@ -264,6 +266,7 @@ namespace ThingMagic
                         throw new ReaderCommException(status.ToString());
                     }
                 }
+
                 llrp.OnReaderEventNotification += new delegateReaderEventNotification(OnReaderEventNotificationReceived);
                 thingmagic_Installer.Install();
                 SetHoldReportsAndEvents(true);
@@ -355,6 +358,7 @@ namespace ThingMagic
                 {
                     ConnectionTimeOut = 10100;
                 }
+
                 connectionErrors = "Tried to connect to LLRP Reader with host name:" + hostName.ToString() + "\n";
                 llrp.Open(hostName, ConnectionTimeOut, out status);
                 if (status != ENUM_ConnectionAttemptStatusType.Success)
@@ -438,6 +442,7 @@ namespace ThingMagic
                     llrp = null;
                 }
             }
+
             GC.Collect();
         }
 
@@ -458,6 +463,7 @@ namespace ThingMagic
                     {
                         throw new ArgumentException("Hoptable cannot be empty.");
                     }
+
                     return SetRegionHopTable(val);
                 }));
             ParamAdd(new Setting("/reader/antenna/portList", typeof(int[]), null, false,
@@ -513,6 +519,7 @@ namespace ThingMagic
                 ParamAdd(new Setting("/reader/read/asyncOnTime", typeof(int), null, true,
                     GetAsyncOnTime, SetAsyncOnTime));
             }
+
             ParamAdd(new Setting("/reader/read/asyncOffTime", typeof(int), null, true,
                 GetAsyncOffTime, SetAsyncOffTime));
             ParamAdd(new Setting("/reader/version/supportedProtocols", typeof(TagProtocol[]), null, false, GetSupportedProtocols, null));
@@ -594,6 +601,7 @@ namespace ThingMagic
                     {
                         throw new FeatureNotSupportedException("Unimplemented feature");
                     }
+
                     return null;
                 }));
             ParamAdd(new Setting("/reader/tagop/antenna", typeof(int), GetFirstConnectedAntenna(), true,
@@ -663,6 +671,7 @@ namespace ThingMagic
             {
                 throw new Exception("Not able to get reader configuration");
             }
+
             PARAM_AntennaProperties[] ant = msgConfigRes.AntennaProperties;
             antennaMax = ant.Length;
             for (int port = 0; port < antennaMax; port++)
@@ -718,6 +727,7 @@ namespace ThingMagic
                     throw new ReaderException(ex.Message);
                 }
             }
+
             pwrlist.Sort();
             rfPowerMin = pwrlist[0];
             rfPowerMax = pwrlist[(powertable.Length) - 1];
@@ -948,6 +958,7 @@ namespace ThingMagic
                             TagQueueEmptyEvent.Set();
                         break;
                 }
+
                 if (0 == ROSpecFlags)
                 {
                     ROSpecFlagsZeroed.Set();
@@ -959,11 +970,13 @@ namespace ThingMagic
                     ROSpecFlagsSet.Set();
                 }
             }
+
             if (aiSpecEvent != null && (aiSpecEvent.EventType == ENUM_AISpecEventType.End_Of_AISpec))
             {
                 // end of AISPEC
                 endOfAISpec = true;
             }
+
             if (rexceptionEvent != null)
             {
                 int val = Convert.ToInt32(rexceptionEvent.Message);
@@ -1018,6 +1031,7 @@ namespace ThingMagic
                     return;
                 }
             }
+
             llrp.OnRoAccessReportReceived -= new delegateRoAccessReport(OnRoAccessReportReceived);
         }
 
@@ -1091,6 +1105,7 @@ namespace ThingMagic
             {
                 throw new TimeoutException("Timeout waiting for tag queue to empty at end of search");
             }
+
             if (false == RFReportQueueEmptyEvent.WaitOne(timeout, false) && (statFlag != 0))
             {
                 if (continuousReading)
@@ -1109,6 +1124,7 @@ namespace ThingMagic
             {
                 isRoAccessReportsComing = true;
             }
+
             delegateRoAccessReport del = new delegateRoAccessReport(UpdateROReport);
             delegateRoAccessReport del1 = new delegateRoAccessReport(SurveyReportData);
             del.Invoke(msg);
@@ -1159,7 +1175,6 @@ namespace ThingMagic
             }
         }
 
-
         bool stopAsyncReadThread = false;
 
         private void ProcessRoAccessReport()
@@ -1180,6 +1195,7 @@ namespace ThingMagic
                             report = (MSG_RO_ACCESS_REPORT)tagReadQueue.Dequeue();
                         }
                     }
+
                     if (null == report)
                     {
                         while (false == TagQueueAddedEvent.WaitOne(0, false))
@@ -1214,6 +1230,7 @@ namespace ThingMagic
                     {
                         rex = new ReaderException("Parser thread caught exception: " + ex.Message);
                     }
+
                     notifyExceptionListeners(rex);
                 }
             }
@@ -1237,6 +1254,7 @@ namespace ThingMagic
                             report = (MSG_RO_ACCESS_REPORT)RFSurvyQueue.Dequeue();
                         }
                     }
+
                     if (null == report)
                     {
                         while (false == RFReportQueueAddedEvent.WaitOne(0, false))
@@ -1271,6 +1289,7 @@ namespace ThingMagic
                     {
                         rex = new ReaderException("Parser thread caught exception: " + ex.Message);
                     }
+
                     notifyExceptionListeners(rex);
                 }
             }
@@ -1316,16 +1335,20 @@ namespace ThingMagic
                             data1.Add(value.ConnectedAntennaList.connectedAntennas[(i - 1)]);
                         }
                     }
+
                     stat.CONNECTEDANTENNA = data1.ToArray();
                 }
+
                 if (value.FrequencyParam != null)
                 {
                     stat.FREQUENCY = value.FrequencyParam.Frequency;
                 }
+
                 if (value.ProtocolParam != null)
                 {
                     stat.PROTOCOL = (TagProtocol)value.ProtocolParam.Protocol;
                 }
+
                 stat.TEMPERATURE = (SByte)value.TemperatureParam.Temperature;
 
                 if (value.perAntennaStatsList != null)
@@ -1343,8 +1366,10 @@ namespace ThingMagic
                             otherval.RfOnTime = value.perAntennaStatsList[i].RFOntimeParam.rfOntime;
                         tempdata.Add(otherval);
                     }
+
                     stat.PERANTENNA = tempdata;
                 }
+
                 stat.VALID = (Stat.StatsFlag)value.StatsEnable;
                 report.STATS = stat;
                 OnStatsRead(report);
@@ -1366,6 +1391,7 @@ namespace ThingMagic
             {
                 tagReads = new List<TagReadData>();
             }
+
             TagReadData tag = null;
             if (null != msg)
             {
@@ -1386,6 +1412,7 @@ namespace ThingMagic
                             {
                                 epc = ((PARAM_EPCData)(msg.TagReportData[i].EPCParameter[0])).EPC.ToHexString();
                             }
+
                             TagData td = new TagData(ByteFormat.FromHex(epc));
                             TagProtocol tagProtocol = 0;
 
@@ -1413,6 +1440,7 @@ namespace ThingMagic
                                         }
                                     }
                                 }
+
                                 ENUM_ThingMagicCustomProtocol protocolID = protocol.ProtocolId;
                                 tagProtocol = parseThingmagicCustomProtocol(Convert.ToInt32(protocolID));
                             }
@@ -1451,6 +1479,7 @@ namespace ThingMagic
                             {
                                 td = new TagData(ByteFormat.FromHex(epc));
                             }
+
                             tag.Reader = this;
                             tag._tagData = td;
                             tag.metaDataFlags = (SerialReader.TagMetadataFlag)metadataflag;
@@ -1500,6 +1529,7 @@ namespace ThingMagic
                                                     gpi = ((PARAM_ThingMagicMetadataGPIO)msg.TagReportData[i].Custom[j]);
                                                 }
                                             }
+
                                             PARAM_GPIOStatus[] gpio = gpi.GPIOStatus;
                                             List<GpioPin> gpioPins = new List<GpioPin>();
                                             if (gpio != null)
@@ -1513,6 +1543,7 @@ namespace ThingMagic
                                                     gpioPins.Add(gpioPin);
                                                 }
                                             }
+
                                             tag._GPIO = gpioPins.ToArray();
                                         }
 
@@ -1529,6 +1560,7 @@ namespace ThingMagic
                                                         ge2Q = ((PARAM_ThingMagicMetadataGen2)msg.TagReportData[i].Custom[j]);
                                                     }
                                                 }
+
                                                 gen2.Q.InitialQ = ge2Q.Gen2QResponse.QValue;
                                             }
 
@@ -1542,6 +1574,7 @@ namespace ThingMagic
                                                         gen2LF = ((PARAM_ThingMagicMetadataGen2)msg.TagReportData[i].Custom[j]);
                                                     }
                                                 }
+
                                                 gen2._lf = (Gen2.LinkFrequency)gen2LF.Gen2LFResponse.LFValue;
                                             }
 
@@ -1555,6 +1588,7 @@ namespace ThingMagic
                                                         gen2targ = ((PARAM_ThingMagicMetadataGen2)msg.TagReportData[i].Custom[j]);
                                                     }
                                                 }
+
                                                 gen2TargetResponse = Convert.ToByte(gen2targ.Gen2TargetResponse.TargetValue);
                                                 switch (gen2TargetResponse)
                                                 {
@@ -1581,6 +1615,7 @@ namespace ThingMagic
                                                         custtagop = ((PARAM_ThingMagicCustomTagopResponse)msg.TagReportData[i].Custom[j]);
                                                     }
                                                 }
+
                                                 PARAM_TagopByteStreamParam tagOpByteStream = (PARAM_TagopByteStreamParam)custtagop.TagopByteStreamParam;
                                                 tag._data = tagOpByteStream.ByteStream.ToArray();
                                             }
@@ -1603,6 +1638,7 @@ namespace ThingMagic
                                             }
                                         }
                                     }
+
                                     tag.prd = gen2;
                                 }
                             }
@@ -1611,11 +1647,11 @@ namespace ThingMagic
                             {
                                 tag.Rssi = Convert.ToInt32(msg.TagReportData[i].PeakRSSI.PeakRSSI.ToString());
                             }
+
                             if (((metadataflag & ENUM_ThingMagicCustomMetadataFlag.MetadataReadCount) == ENUM_ThingMagicCustomMetadataFlag.MetadataReadCount) || metadataflag.Equals(ENUM_ThingMagicCustomMetadataFlag.MetadataAll))
                             {
                                 tag.ReadCount = msg.TagReportData[i].TagSeenCount.TagCount;
                             }
-
 
                             if (((metadataflag & ENUM_ThingMagicCustomMetadataFlag.MetadataFrequency) == ENUM_ThingMagicCustomMetadataFlag.MetadataFrequency) || metadataflag.Equals(ENUM_ThingMagicCustomMetadataFlag.MetadataAll))
                             {
@@ -1623,6 +1659,7 @@ namespace ThingMagic
                                 List<uint> freq = frequencyHopTable[0].Frequency.data;
                                 tag._frequency = (chIndex > 0) ? Convert.ToInt32(freq[chIndex - 1]) : 0;
                             }
+
                             UNION_AccessCommandOpSpecResult opSpecResult = msg.TagReportData[i].AccessCommandOpSpecResult;
                             //tag._data = EMPTY_DATA;
                             // Use try-finally to to keep failed tagops from preventing report of TagReadData
@@ -1673,6 +1710,7 @@ namespace ThingMagic
                         tag = null;
                     }
                 }
+
                 TagQueueEmptyEvent.Set();
             }
         }
@@ -1701,6 +1739,7 @@ namespace ThingMagic
                 default:
                     break;
             }
+
             return protocol;
         }
 
@@ -1920,10 +1959,12 @@ namespace ThingMagic
                     {
                         qtPayload.QTSR = true;
                     }
+
                     if ((res & 0x4000) != 0)
                     {
                         qtPayload.QTMEM = true;
                     }
+
                     tagOpResponse = qtPayload;
                 }
             }
@@ -2273,6 +2314,7 @@ namespace ThingMagic
                         DisableROSpec(roSpec.ROSpecID);
                     }
                 }
+
                 WaitForSearchEnd(0);
                 llrp.OnRoAccessReportReceived -= new delegateRoAccessReport(OnRoAccessReportReceived);
                 continuousReading = false;
@@ -2320,10 +2362,12 @@ namespace ThingMagic
                         break;
                     Thread.Sleep(20000);
                 }
+
                 if (!isLLRP)
                 {
                     throw new ReaderException("Reader Type changed...Please reconnect");
                 }
+
                 Connect();
                 isFirmwareLoadInProgress = false;
             }
@@ -2357,6 +2401,7 @@ namespace ThingMagic
                     list.Add(pin);
                 }
             }
+
             return list.ToArray();
         }
 
@@ -2367,6 +2412,7 @@ namespace ThingMagic
             {
                 throw new ReaderParseException(String.Format("Invalid LLRP GpiPortNum: {0}", llrpNum));
             }
+
             return gpiList[llrpNum - 1];
         }
 
@@ -2392,6 +2438,7 @@ namespace ThingMagic
                     list.Add(data);
                 }
             }
+
             msg.GPOWriteData = list.ToArray();
             SendLlrpMessage(msg);
         }
@@ -2403,6 +2450,7 @@ namespace ThingMagic
             {
                 throw new ArgumentException(String.Format("Invalid GPO Number: {0}", tmNum));
             }
+
             return getTmToLlrpGpoMap()[tmNum];
         }
         private Dictionary<int, ushort> getTmToLlrpGpoMap()
@@ -2417,6 +2465,7 @@ namespace ThingMagic
                     llrpNum++;
                 }
             }
+
             return _tmToLlrpGpoMap;
         }
 

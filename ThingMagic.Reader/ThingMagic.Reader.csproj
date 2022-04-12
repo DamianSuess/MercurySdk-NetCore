@@ -10,9 +10,12 @@
   <ItemGroup>
     <None Remove="ThingMagic.Reader.csproj.old" />
   </ItemGroup>
+  <!--
+  What is this even used for?
   <ItemGroup>
     <Reference Include="WindowsFormsIntegration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
   </ItemGroup>
+  -->
   <ItemGroup>
     <None Include="mercuryapi.snk" />
   </ItemGroup>
@@ -22,8 +25,11 @@
   <ItemGroup>
     <ProjectReference Include="..\LTKNet\LLRP\LLRP.csproj" />
   </ItemGroup>
+  <!--
+  TEMP DISABLED
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y "$(SolutionDir)MercuryAPI.dll" "$(SolutionDir)Samples\UniversalReaderAssistant2.0\UniversalReaderAssistant2.0\Dlls\"
 xcopy /Y "$(SolutionDir)MercuryAPI.pdb" "$(SolutionDir)Samples\UniversalReaderAssistant2.0\UniversalReaderAssistant2.0\Dlls\"</PostBuildEvent>
   </PropertyGroup>
+  -->
 </Project>
