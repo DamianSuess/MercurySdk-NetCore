@@ -19,17 +19,23 @@ The Universal Reader Assistant is the application used by Jadak for testing out 
 
 `Jadak SDK\Software\mercuryapi-1.35.1.103\cs\Samples\UniversalReaderAssistant2.0`
 
-## Upgrade to .NET 5 for Cross-Platform
+## Pre-Upgrade Issues
+
+### Incomplete/Missing API
+
+In LLRP's LLRPClient.xslt file is missing a reference to the event, `public event delegateGenericMessages OnGenericMessageReceived;`. During compile-time, LLRPClient.cs is generated from the XSLT template which does not contain infrastructre required by the **ThingMagic.Reader** project.
+
+## LLRP - Upgrade to .NET 5 for Cross-Platform
 
 The MercuryAPI.dll requires the open source project, LLRP.dll, which is built on .NET 2.0.
 
 This document provides the outcome of the feasibility to upgrade the library to .NET 5 and its ability to run on Linux. Overall, I would prefer the 3rd-party vendor to perform this action for supportability and warranty purposes.
 
-## Upgrade Step 1 - .NET Framework 2.0 to 4.0
+### Upgrade Step 1 - .NET Framework 2.0 to 4.0
 
 The upgrade was successful.
 
-## Upgrade Step 2 - .NET Framework 4.0 to .NET 5
+### Upgrade Step 2 - .NET Framework 4.0 to .NET 5
 
 The upgrade was performed using Microsoft's tool, `try-convert` and the following outcomes were discovered:
 
@@ -77,6 +83,17 @@ MSBUILD BUG:
 3. `TCPIPClient.cs` relies on the deprecated library and needs upgraded
 4. `LLRPClient.xslt` and `.cs` references it but is not used.
 5. `LLRPEndPoint.xslt` and `.cs` references it but is not used.
+
+## ThingMagic.Reader
+
+### Upgrade to .NET 5
+
+Also known as, MercuryAPI, ThingMagic.Reader was originally built using .NET Framework 4.0. This section documents it upgrade path to .NET 5
+
+### Deprecation Warnings
+
+* System.IO.Ports - Deprecated. _use the .NET Platform Extension 6_
+
 
 ## References
 

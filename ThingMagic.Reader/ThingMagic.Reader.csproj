@@ -11,13 +11,16 @@
     <None Remove="ThingMagic.Reader.csproj.old" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="LLRP">
-      <HintPath>..\LLRP.dll</HintPath>
-    </Reference>
     <Reference Include="WindowsFormsIntegration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mercuryapi.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" IsImplicitlyDefined="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LTKNet\LLRP\LLRP.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y "$(SolutionDir)MercuryAPI.dll" "$(SolutionDir)Samples\UniversalReaderAssistant2.0\UniversalReaderAssistant2.0\Dlls\"
