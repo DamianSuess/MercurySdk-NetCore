@@ -8,7 +8,12 @@
     <OutputPath>..\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LLRP, Version=1.0.0.6, Culture=neutral, PublicKeyToken=92f466b54dae9fc4, processorArchitecture=MSIL" />
+    <None Remove="ThingMagic.Reader.csproj.old" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="LLRP">
+      <HintPath>..\LLRP.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsFormsIntegration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
