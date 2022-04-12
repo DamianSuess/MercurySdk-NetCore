@@ -1,8 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.2.32317.152
-MinimumVisualStudioVersion = 10.0.40219.1
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LLRP", "LLRP\LLRP.csproj", "{1C0436C6-1226-4B5C-BE7D-8AC69AEB66FC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD81CCB5-7E38-4A9B-8259-0AA4399D03F0} = {DD81CCB5-7E38-4A9B-8259-0AA4399D03F0}
@@ -109,8 +107,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {D3BA3606-4391-49CB-9BC8-84440EDDB0A1}
 	EndGlobalSection
 EndGlobal
