@@ -42,6 +42,7 @@
 * 2022-04-06 [DJS]
 *   - Removed reference to deprecated library, System.Runtime.Remoting
 *   - Realigned tabbing and spacing for code cleanliness and errors
+*   - Added back undocumented code (i.e. `OnGenericMessageReceived`) used by ThingMagic.Reader
 ***************************************************************************
 */
 
@@ -66,6 +67,7 @@ namespace Org.LLRP.LTK.LLRPV1
     public delegate void delegateReaderEventNotification(MSG_READER_EVENT_NOTIFICATION msg);
     public delegate void delegateRoAccessReport(MSG_RO_ACCESS_REPORT msg);
     public delegate void delegateKeepAlive(MSG_KEEPALIVE msg);
+    public delegate void delegateGenericMessages(Message msg);    // UNDOCUMENTED
 
     //Delegates for sending encapsulated asyn. messages
     public delegate void delegateEncapReaderEventNotification(ENCAPED_READER_EVENT_NOTIFICATION msg);
@@ -99,10 +101,12 @@ namespace Org.LLRP.LTK.LLRPV1
         public event delegateReaderEventNotification OnReaderEventNotification;
         public event delegateRoAccessReport OnRoAccessReportReceived;
         public event delegateKeepAlive OnKeepAlive;
+        public event delegateGenericMessages OnGenericMessageReceived; // UNDOCUMENTED
 
         public event delegateEncapReaderEventNotification OnEncapedReaderEventNotification;
         public event delegateEncapRoAccessReport OnEncapedRoAccessReportReceived;
         public event delegateEncapKeepAlive OnEncapedKeepAlive;
+        public event delegateGenericMessages OnEncapedGenericMessageReceived;  // UNDOCUMENTED
 
         protected void TriggerReaderEventNotification(MSG_READER_EVENT_NOTIFICATION msg)
         {
@@ -110,9 +114,9 @@ namespace Org.LLRP.LTK.LLRPV1
                 if (OnReaderEventNotification != null) OnReaderEventNotification(msg);
                 if (OnEncapedReaderEventNotification != null)
                 {
-                ENCAPED_READER_EVENT_NOTIFICATION ntf = new ENCAPED_READER_EVENT_NOTIFICATION();
-                ntf.reader = reader_name;
-                ntf.ntf = msg;
+                    ENCAPED_READER_EVENT_NOTIFICATION ntf = new ENCAPED_READER_EVENT_NOTIFICATION();
+                    ntf.reader = reader_name;
+                    ntf.ntf = msg;
                 }
             }
             catch
@@ -141,7 +145,7 @@ namespace Org.LLRP.LTK.LLRPV1
 
         protected void TriggerKeepAlive(MSG_KEEPALIVE msg)
         {
-            try 
+            try
             {
                 if (OnKeepAlive != null) OnKeepAlive(msg);
                 if (OnEncapedKeepAlive != null)
@@ -158,6 +162,21 @@ namespace Org.LLRP.LTK.LLRPV1
             }
         }
 
+        //// UNDOCUMENTED
+        protected void TriggerGenericMessages(Message msg)
+        {
+            try
+            {
+                if (OnGenericMessageReceived != null) OnGenericMessageReceived(msg);
+                if (OnEncapedGenericMessageReceived != null)
+                {
+                    Message genericMsg = msg;
+                    OnEncapedGenericMessageReceived(genericMsg);
+                }
+            }
+            catch { }
+        }
+
         #region Properties
         /// <summary>
         /// Reader name.
@@ -171,7 +190,6 @@ namespace Org.LLRP.LTK.LLRPV1
         {
             get{return connected;}
         }
-
         #endregion
 
         #region Assistance Functions
@@ -237,14 +255,17 @@ namespace Org.LLRP.LTK.LLRPV1
                         switch ((ENUM_LLRP_MSG_TYPE) msg.MSG_TYPE)
                         {
                             case ENUM_LLRP_MSG_TYPE.RO_ACCESS_REPORT:
-                            TriggerRoAccessReport((MSG_RO_ACCESS_REPORT) msg);
+                                TriggerRoAccessReport((MSG_RO_ACCESS_REPORT) msg);
                             break;
                             case ENUM_LLRP_MSG_TYPE.KEEPALIVE:
-                            TriggerKeepAlive((MSG_KEEPALIVE) msg);
+                                TriggerKeepAlive((MSG_KEEPALIVE) msg);
                             break;
                             case ENUM_LLRP_MSG_TYPE.READER_EVENT_NOTIFICATION:
-                            TriggerReaderEventNotification((MSG_READER_EVENT_NOTIFICATION)msg);
+                                TriggerReaderEventNotification((MSG_READER_EVENT_NOTIFICATION)msg);
                             break;
+                            default:
+                                TriggerGenericMessages(msg);  //// UNDOCUMENTED
+                                break;
                         }
                     }
                 }
@@ -368,33 +389,33 @@ namespace Org.LLRP.LTK.LLRPV1
             switch((ENUM_LLRP_MSG_TYPE)msg_type)
             {
     
-                  case ENUM_LLRP_MSG_TYPE.RO_ACCESS_REPORT:
-                      try
-                      {
-                          bArr = Util.ConvertByteArrayToBitArray(data);
-                          length = bArr.Count;
-                          MSG_RO_ACCESS_REPORT rpt = MSG_RO_ACCESS_REPORT.FromBitArray(ref bArr, ref cursor, length);
-                          notificationQueue.Enqueue(rpt);
-                      }
-                      catch
-                      {
-                      }
+                case ENUM_LLRP_MSG_TYPE.RO_ACCESS_REPORT:
+                    try
+                    {
+                        bArr = Util.ConvertByteArrayToBitArray(data);
+                        length = bArr.Count;
+                        MSG_RO_ACCESS_REPORT rpt = MSG_RO_ACCESS_REPORT.FromBitArray(ref bArr, ref cursor, length);
+                        notificationQueue.Enqueue(rpt);
+                    }
+                    catch
+                    {
+                    }
               
-                  break;
+                    break;
         
                 case ENUM_LLRP_MSG_TYPE.KEEPALIVE:
-                try
-                {
-                    bArr = Util.ConvertByteArrayToBitArray(data);
-                    length = bArr.Count;
-                    MSG_KEEPALIVE msg = MSG_KEEPALIVE.FromBitArray(ref bArr, ref cursor, length);
-                    notificationQueue.Enqueue(msg);
-                }
-                catch
-                {
-                }
+                    try
+                    {
+                        bArr = Util.ConvertByteArrayToBitArray(data);
+                        length = bArr.Count;
+                        MSG_KEEPALIVE msg = MSG_KEEPALIVE.FromBitArray(ref bArr, ref cursor, length);
+                        notificationQueue.Enqueue(msg);
+                    }
+                    catch
+                    {
+                    }
           
-                break;
+                    break;
         
                 case ENUM_LLRP_MSG_TYPE.READER_EVENT_NOTIFICATION:
                     try
@@ -419,6 +440,89 @@ namespace Org.LLRP.LTK.LLRPV1
                     break;
         
                 default:
+                    //// UNDOCUMENTED
+                    bArr = Util.ConvertByteArrayToBitArray(data);
+                    length = bArr.Count;
+                    Message gMesg = null;
+                    switch ((ENUM_LLRP_MSG_TYPE)msg_type)
+                    {
+                        case ENUM_LLRP_MSG_TYPE.GET_READER_CONFIG_RESPONSE:
+                            gMesg = MSG_GET_READER_CONFIG_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.GET_READER_CAPABILITIES_RESPONSE:
+                            gMesg = MSG_GET_READER_CAPABILITIES_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.DELETE_ROSPEC_RESPONSE:
+                            gMesg = MSG_DELETE_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.DELETE_ACCESSSPEC_RESPONSE:
+                            gMesg = MSG_DELETE_ACCESSSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.STOP_ROSPEC_RESPONSE:
+                            gMesg = MSG_STOP_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.GET_ROSPECS_RESPONSE:
+                            gMesg = MSG_GET_ROSPECS_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.SET_READER_CONFIG_RESPONSE:
+                            gMesg = MSG_SET_READER_CONFIG_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.START_ROSPEC_RESPONSE:
+                            gMesg = MSG_START_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.ADD_ROSPEC_RESPONSE:
+                            gMesg = MSG_ADD_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.ENABLE_ROSPEC_RESPONSE:
+                            gMesg = MSG_ENABLE_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.DISABLE_ROSPEC_RESPONSE:
+                            gMesg = MSG_DISABLE_ROSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.GET_ACCESSSPECS_RESPONSE:
+                            gMesg = MSG_GET_ACCESSSPECS_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.ADD_ACCESSSPEC_RESPONSE:
+                            gMesg = MSG_ADD_ACCESSSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.ENABLE_ACCESSSPEC_RESPONSE:
+                            gMesg = MSG_ENABLE_ACCESSSPEC_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.CLOSE_CONNECTION_RESPONSE:
+                            gMesg = MSG_CLOSE_CONNECTION_RESPONSE.FromBitArray(ref bArr, ref cursor, length);
+                            break;
+                        case ENUM_LLRP_MSG_TYPE.CUSTOM_MESSAGE:
+                            // First decode it as custom message.
+                            BitArray tempArr = bArr;
+                            int tempCursor = cursor;
+                            MSG_CUSTOM_MESSAGE mesg = MSG_CUSTOM_MESSAGE.FromBitArray(ref tempArr, ref tempCursor, length);
+                            // Based on subtype , decode the actual type of custom message.
+                            switch ( mesg.SubType )
+                            {
+                                case (byte)2:
+                                    gMesg = Org.LLRP.LTK.LLRPV1.thingmagic.MSG_THINGMAGIC_CONTROL_RESPONSE_POWER_CYCLE_READER.FromBitArray(ref bArr, ref cursor, length);
+                                    break;
+                                case (byte)4:
+                                    gMesg = Org.LLRP.LTK.LLRPV1.thingmagic.MSG_THINGMAGIC_CONTROL_RESPONSE_RESET_STATISTICS.FromBitArray(ref bArr, ref cursor, length);
+                                    break;
+                                case (byte)6:
+                                    gMesg = Org.LLRP.LTK.LLRPV1.thingmagic.MSG_THINGMAGIC_CONTROL_RESPONSE_GET_RESET_TIME.FromBitArray(ref bArr, ref cursor, length);
+                                    break;
+                                case (byte)8:
+                                    gMesg = Org.LLRP.LTK.LLRPV1.thingmagic.MSG_THINGMAGIC_CONTROL_RESPONSE_GET_ANTENNA_STATS.FromBitArray(ref bArr, ref cursor, length);
+                                    break;
+                                case (byte)12:
+                                    gMesg = Org.LLRP.LTK.LLRPV1.thingmagic.MSG_THINGMAGIC_CONTROL_RESPONSE_GET_READER_STATUS.FromBitArray(ref bArr, ref cursor, length);
+                                    break;
+                                default:
+                                    gMesg = MSG_CUSTOM_MESSAGE.FromBitArray(ref bArr, ref cursor, length);
+                                    break;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    notificationQueue.Enqueue(gMesg);
                     break;
             }
         }

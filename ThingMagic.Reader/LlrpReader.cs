@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2011 ThingMagic, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -141,7 +141,6 @@ namespace ThingMagic
         private int maxSubPlanCnt = 5; /*For TMreader build <5.3.2.93*/
 
         ENUM_ThingMagicCustomMetadataFlag metadataflag = ENUM_ThingMagicCustomMetadataFlag.MetadataAll;
-
 
         #endregion Fields
 
