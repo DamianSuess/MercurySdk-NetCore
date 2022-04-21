@@ -5,14 +5,15 @@
     <TargetFramework>net5.0</TargetFramework>
     <!--<ImplicitUsings>enable</ImplicitUsings>-->
     <Nullable>enable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="LLRP">
-      <HintPath>..\..\LLRP.dll</HintPath>
+      <HintPath>..\netstandard2.0\LLRP.dll</HintPath>
     </Reference>
     <Reference Include="MercuryAPI">
-      <HintPath>..\..\MercuryAPI.dll</HintPath>
+      <HintPath>..\netstandard2.0\MercuryAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
 
