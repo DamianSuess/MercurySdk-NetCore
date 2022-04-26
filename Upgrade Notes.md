@@ -21,9 +21,13 @@ The Universal Reader Assistant is the application used by Jadak for testing out 
 
 ## Pre-Upgrade Issues
 
-### Incomplete/Missing API
+### Fixing Missing API
 
-In LLRP's LLRPClient.xslt file is missing a reference to the event, `public event delegateGenericMessages OnGenericMessageReceived;`. During compile-time, LLRPClient.cs is generated from the XSLT template which does not contain infrastructre required by the **ThingMagic.Reader** project.
+There is undocumented API which is overwritten by the `XSLT` templates in the LLRP project.
+
+In LLRP's `LLRPClient.xslt` file is missing a reference to the event, `public event delegateGenericMessages OnGenericMessageReceived;`. During compile-time, `LLRPClient.cs` is generated from the XSLT template which does not contain infrastructre required by the **ThingMagic.Reader** project.
+
+To circumvent, I copied the the content of `LLRPClient.cs` into the `.xslt` file so that it is not overwritten. This fixes the compiler errors in ThingMagic.Reader.
 
 ## LLRP - Upgrade to .NET 5 for Cross-Platform
 
