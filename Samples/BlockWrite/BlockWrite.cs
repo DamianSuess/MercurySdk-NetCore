@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 // Reference the API
 using ThingMagic;
@@ -15,11 +14,11 @@ namespace BlockWrite
         static void Usage()
         {
             Console.WriteLine(String.Join("\r\n", new string[] {
-                    " Usage: "+"Please provide valid reader URL, such as: [-v] [reader-uri] [--ant n[,n...]]",
-                    " -v : (Verbose)Turn on transport listener",
-                    " reader-uri : e.g., 'tmr:///com4' or 'tmr:///dev/ttyS0/' or 'tmr://readerIP'",
-                    " [--ant n[,n...]] : e.g., '--ant 1,2,..,n",
-                    " Example: 'tmr:///com4' or 'tmr:///com4 --ant 1,2' or '-v tmr:///com4 --ant 1,2'"
+                " Usage: "+"Please provide valid reader URL, such as: [-v] [reader-uri] [--ant n[,n...]]",
+                " -v : (Verbose)Turn on transport listener",
+                " reader-uri : e.g., 'tmr:///com4' or 'tmr:///dev/ttyS0/' or 'tmr://readerIP'",
+                " [--ant n[,n...]] : e.g., '--ant 1,2,..,n",
+                " Example: 'tmr:///com4' or 'tmr:///com4 --ant 1,2' or '-v tmr:///com4 --ant 1,2'"
             }));
             Environment.Exit(1);
         }
@@ -30,6 +29,7 @@ namespace BlockWrite
             {
                 Usage();
             }
+
             int[] antennaList = null;
             for (int nextarg = 1; nextarg < args.Length; nextarg++)
             {
@@ -41,6 +41,7 @@ namespace BlockWrite
                         Console.WriteLine("Duplicate argument: --ant specified more than once");
                         Usage();
                     }
+
                     antennaList = ParseAntennaList(args, nextarg);
                     nextarg++;
                 }
@@ -71,13 +72,16 @@ namespace BlockWrite
                             {
                                 throw new FAULT_INVALID_REGION_Exception();
                             }
+
                             r.ParamSet("/reader/region/id", supportedRegions[0]);
                         }
+
                         if (r.isAntDetectEnabled(antennaList))
                         {
                             Console.WriteLine("Module doesn't has antenna detection support please provide antenna list");
                             Usage();
                         }
+
                         Gen2.Password pass = new Gen2.Password(0x0);
                         r.ParamSet("/reader/gen2/accessPassword", pass);
 
@@ -97,8 +101,8 @@ namespace BlockWrite
                         {
                             Console.Write(" {0:X4}", word);
                         }
-                        Console.WriteLine();
 
+                        Console.WriteLine();
 
                         // BlockWrite and read using embedded read command
 
@@ -125,6 +129,7 @@ namespace BlockWrite
                             {
                                 Console.Write(" {0:X2}", b);
                             }
+
                             Console.WriteLine("    " + trd);
                         }
                     }

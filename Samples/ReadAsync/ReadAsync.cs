@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 // for Thread.Sleep
@@ -18,16 +18,17 @@ namespace ReadAsync
         /// <summary>
         /// This indicates the read time of async read, i.e., sleep time between start and stop read.
         /// </summary>
-        private static double SLEEP_TIME = 5000;
+        private const double SLEEP_TIME = 5000;
+
         static void Usage()
         {
             Console.WriteLine(String.Join("\r\n", new string[] {
-                    " Usage: "+"Please provide valid reader URL, such as: [-v] [reader-uri] [--ant n[,n...]]",
-                    " -v : (Verbose)Turn on transport listener",
-                    " reader-uri : e.g., 'tmr:///com4' or 'tmr:///dev/ttyS0/' or 'tmr://readerIP'",
-                    " [--ant n[,n...]] : e.g., '--ant 1,2,..,n",
-                    " Example for UHF: 'tmr:///com4' or 'tmr:///com4 --ant 1,2' or '-v tmr:///com4 --ant 1,2'",
-                    " Example for HF/LF: 'tmr:///com4'"
+                " Usage: "+"Please provide valid reader URL, such as: [-v] [reader-uri] [--ant n[,n...]]",
+                " -v : (Verbose)Turn on transport listener",
+                " reader-uri : e.g., 'tmr:///com4' or 'tmr:///dev/ttyS0/' or 'tmr://readerIP'",
+                " [--ant n[,n...]] : e.g., '--ant 1,2,..,n",
+                " Example for UHF: 'tmr:///com4' or 'tmr:///com4 --ant 1,2' or '-v tmr:///com4 --ant 1,2'",
+                " Example for HF/LF: 'tmr:///com4'"
             }));
             Environment.Exit(1);
         }
@@ -38,6 +39,7 @@ namespace ReadAsync
             {
                 Usage();
             }
+
             int[] antennaList = null;
             for (int nextarg = 1; nextarg < args.Length; nextarg++)
             {
@@ -49,6 +51,7 @@ namespace ReadAsync
                         Console.WriteLine("Duplicate argument: --ant specified more than once");
                         Usage();
                     }
+
                     antennaList = ParseAntennaList(args, nextarg);
                     nextarg++;
                 }
@@ -77,8 +80,10 @@ namespace ReadAsync
                         {
                             throw new FAULT_INVALID_REGION_Exception();
                         }
+
                         r.ParamSet("/reader/region/id", supportedRegions[0]);
                     }
+
                     string model = (string)r.ParamGet("/reader/version/model").ToString();
                     if (!model.Equals("M3e"))
                     {
@@ -96,6 +101,7 @@ namespace ReadAsync
                             Usage();
                         }
                     }
+
                     // Create a simplereadplan which uses the antenna list created above
                     SimpleReadPlan plan;
                     if (model.Equals("M3e"))
@@ -107,6 +113,7 @@ namespace ReadAsync
                     {
                         plan = new SimpleReadPlan(antennaList, TagProtocol.GEN2, null, null, 1000);
                     }
+
                     // Set the created readplan
                     r.ParamSet("/reader/read/plan", plan);
 
@@ -115,14 +122,15 @@ namespace ReadAsync
                     {
                         Console.WriteLine("Background read: " + e.TagReadData);
                     };
-                    // Create and add read exception listener
 
+                    // Create and add read exception listener
                     r.ReadException += delegate(object sender, ReaderExceptionEventArgs e)
                     {
                         if (r.lastReportedException == null || (r.lastReportedException == null) ? true : (!e.ReaderException.Message.Contains(r.lastReportedException.Message)))
                         {
                             Console.WriteLine("Error: " + e.ReaderException.Message);
                         }
+
                         r.lastReportedException = e.ReaderException;
                     };
 
@@ -143,16 +151,19 @@ namespace ReadAsync
                             //break if sleep timeout expired    
                             break;
                         }
+
                         //Exit the process if any error occured
                         if (r.lastReportedException != null)
                         {
-                            errorHandler(r);
+                            ErrorHandler(r);
                             //Can add recovery mechanism here
                             //Do some work here 
                             Environment.Exit(1);
                         }
+
                         Thread.Sleep(1);
                     }
+
                     r.StopReading();
 
                 }
@@ -190,7 +201,7 @@ namespace ReadAsync
         /// Function to handle different errors received
         /// </summary>
         /// <param name="r"></param>
-        private static void errorHandler(Reader r)
+        private static void ErrorHandler(Reader r)
         {
             ReaderException re = r.lastReportedException;
             switch (re.Message)
@@ -231,6 +242,7 @@ namespace ReadAsync
                 Console.WriteLine("{0}\"{1}\"", ex.Message, args[argPosition + 1]);
                 Usage();
             }
+
             return antennaList;
         }
 
