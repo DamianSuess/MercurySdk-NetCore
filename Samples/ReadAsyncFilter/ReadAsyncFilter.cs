@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 // for Thread.Sleep
@@ -25,6 +25,7 @@ namespace ReadAsyncFilter
                     " Example for UHF: 'tmr:///com4' or 'tmr:///com4 --ant 1,2' or '-v tmr:///com4 --ant 1,2'",
                     " Example for HF/LF: 'tmr:///com4'"
             }));
+
             Environment.Exit(1);
         }
         static void Main(string[] args)
@@ -34,6 +35,7 @@ namespace ReadAsyncFilter
             {
                 Usage();
             }
+
             int[] antennaList = null;
             for (int nextarg = 1; nextarg < args.Length; nextarg++)
             {
@@ -45,6 +47,7 @@ namespace ReadAsyncFilter
                         Console.WriteLine("Duplicate argument: --ant specified more than once");
                         Usage();
                     }
+
                     antennaList = ParseAntennaList(args, nextarg);
                     nextarg++;
                 }
@@ -73,8 +76,10 @@ namespace ReadAsyncFilter
                         {
                             throw new FAULT_INVALID_REGION_Exception();
                         }
+
                         r.ParamSet("/reader/region/id", supportedRegions[0]);
                     }
+
                     string model = (string)r.ParamGet("/reader/version/model").ToString();
                     if (!model.Equals("M3e"))
                     {
@@ -92,6 +97,7 @@ namespace ReadAsyncFilter
                             Usage();
                         }
                     }
+
                     // Create a simplereadplan which uses the antenna list created above
                     SimpleReadPlan plan;
                     if (model.Equals("M3e"))
@@ -103,17 +109,22 @@ namespace ReadAsyncFilter
                     {
                         plan = new SimpleReadPlan(antennaList, TagProtocol.GEN2, null, null, 1000);
                     }
+
                     // Set the created readplan
                     r.ParamSet("/reader/read/plan", plan);
 
                     // Create and add tag listener
                     CountMatchListener cml = new CountMatchListener(0xE2);
                     r.TagRead += cml.TagRead;
+
                     // Create and add read exception listener
                     r.ReadException += new EventHandler<ReaderExceptionEventArgs>(r_ReadException);
+
                     // Search for tags in the background
                     r.StartReading();
+
                     Thread.Sleep(500);
+
                     r.StopReading();
 
                     r.TagRead -= cml.TagRead;
@@ -163,6 +174,7 @@ namespace ReadAsyncFilter
                 Console.WriteLine("{0}\"{1}\"", ex.Message, args[argPosition + 1]);
                 Usage();
             }
+
             return antennaList;
         }
 

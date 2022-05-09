@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using AesLib;
 
 // Reference the API
@@ -11,23 +10,24 @@ namespace ReadBuffer
     /// <summary>
     /// Sample program that to demonstrate the usage of Gen2v2 ReadBuffer.
     /// </summary>
-    class ReadBuffer
+    public class ReadBuffer
     {
-        private static Reader r = null;
-        private static int[] antennaList = null;
+        private static Reader _r = null;
+        private static int[] _antennaList = null;
 
         static void Usage()
         {
             Console.WriteLine(String.Join("\r\n", new string[] {
-                    " Usage: "+"Please provide valid reader URL, such as: [-v] [reader-uri] [--ant n[,n...]]",
-                    " -v : (Verbose)Turn on transport listener",
-                    " reader-uri : e.g., 'tmr:///com4' or 'tmr:///dev/ttyS0/' or 'tmr://readerIP'",
-                    " [--ant n[,n...]] : e.g., '--ant 1,2,..,n",
-                    " Example: 'tmr:///com4' or 'tmr:///com4 --ant 1,2' or '-v tmr:///com4 --ant 1,2'"
+                " Usage: "+"Please provide valid reader URL, such as: [-v] [reader-uri] [--ant n[,n...]]",
+                " -v : (Verbose)Turn on transport listener",
+                " reader-uri : e.g., 'tmr:///com4' or 'tmr:///dev/ttyS0/' or 'tmr://readerIP'",
+                " [--ant n[,n...]] : e.g., '--ant 1,2,..,n",
+                " Example: 'tmr:///com4' or 'tmr:///com4 --ant 1,2' or '-v tmr:///com4 --ant 1,2'"
             }));
             Environment.Exit(1);
         }
-        static void Main(string[] args)
+
+        public static void Main(string[] args)
         {
             // Program setup
             if (1 > args.Length)
@@ -40,12 +40,13 @@ namespace ReadBuffer
                 string arg = args[nextarg];
                 if (arg.Equals("--ant"))
                 {
-                    if (null != antennaList)
+                    if (null != _antennaList)
                     {
                         Console.WriteLine("Duplicate argument: --ant specified more than once");
                         Usage();
                     }
-                    antennaList = ParseAntennaList(args, nextarg);
+
+                    _antennaList = ParseAntennaList(args, nextarg);
                     nextarg++;
                 }
                 else
@@ -60,35 +61,37 @@ namespace ReadBuffer
                 // Create Reader object, connecting to physical device.
                 // Wrap reader in a "using" block to get automatic
                 // reader shutdown (using IDisposable interface).
-                using (r = Reader.Create(args[0]))
+                using (_r = Reader.Create(args[0]))
                 {
                     //Uncomment this line to add default transport listener.
                     //r.Transport += r.SimpleTransportListener;
 
-                    r.Connect();
-                    if (Reader.Region.UNSPEC == (Reader.Region)r.ParamGet("/reader/region/id"))
+                    _r.Connect();
+                    if (Reader.Region.UNSPEC == (Reader.Region)_r.ParamGet("/reader/region/id"))
                     {
-                        Reader.Region[] supportedRegions = (Reader.Region[])r.ParamGet("/reader/region/supportedRegions");
+                        Reader.Region[] supportedRegions = (Reader.Region[])_r.ParamGet("/reader/region/supportedRegions");
                         if (supportedRegions.Length < 1)
                         {
                             throw new FAULT_INVALID_REGION_Exception();
                         }
-                        r.ParamSet("/reader/region/id", supportedRegions[0]);
+
+                        _r.ParamSet("/reader/region/id", supportedRegions[0]);
                     }
-                    if (r.isAntDetectEnabled(antennaList))
+
+                    if (_r.isAntDetectEnabled(_antennaList))
                     {
                         Console.WriteLine("Module doesn't has antenna detection support please provide antenna list");
                         Usage();
                     }
 
                     // Create a simplereadplan which uses the antenna list created above
-                    SimpleReadPlan plan = new SimpleReadPlan(antennaList, TagProtocol.GEN2, null, null, 1000);
+                    SimpleReadPlan plan = new SimpleReadPlan(_antennaList, TagProtocol.GEN2, null, null, 1000);
                     // Set the created readplan
-                    r.ParamSet("/reader/read/plan", plan);
+                    _r.ParamSet("/reader/read/plan", plan);
 
                     //Use first antenna for operation
-                    if (antennaList != null)
-                        r.ParamSet("/reader/tagop/antenna", antennaList[0]);
+                    if (_antennaList != null)
+                        _r.ParamSet("/reader/tagop/antenna", _antennaList[0]);
 
                     ushort[] Key0 = new ushort[] { 0x0123, 0x4567, 0x89AB, 0xCDEF, 0x0123, 0x4567, 0x89AB, 0xCDEF };
                     ushort[] Key1 = new ushort[] { 0x1122, 0x3344, 0x5566, 0x7788, 0x1122, 0x3344, 0x5566, 0x7788 };
@@ -142,8 +145,9 @@ namespace ReadBuffer
                     ushort ProtMode = 1;
                     tam2Auth = new Gen2.NXP.AES.Tam2Authentication(Gen2.NXP.AES.KeyId.KEY1, Key1,
                                Gen2.NXP.AES.Profile.EPC, Offset, BlockCount, ProtMode, SendRawData);
+
                     Gen2.ReadBuffer Tam2RdBufWithKey1 = new Gen2.NXP.AES.ReadBuffer(0, 256, tam2Auth);
-                    Response = (byte[])r.ExecuteTagOp(Tam2RdBufWithKey1, filter);
+                    Response = (byte[])_r.ExecuteTagOp(Tam2RdBufWithKey1, filter);
                     if (SendRawData)
                     {
                         parseTAM2Response(Response, ByteConv.ConvertFromUshortArray(Key1), ProtMode);
@@ -232,7 +236,7 @@ namespace ReadBuffer
                         //{
                         //    Console.WriteLine("Generated Ichallenge:" + ByteFormat.ToHex(Response, "", " "));
                         //}
-                        
+
                         //ReadBuffer with TAM2 with key0
                         //ushort offset = 0;
                         //ushort blockCount = 1;
@@ -278,8 +282,6 @@ namespace ReadBuffer
             }
         }
 
-        #region ParseAntennaList
-
         private static int[] ParseAntennaList(IList<string> args, int argPosition)
         {
             int[] antennaList = null;
@@ -302,14 +304,11 @@ namespace ReadBuffer
                 Console.WriteLine("{0}\"{1}\"", ex.Message, args[argPosition + 1]);
                 Usage();
             }
+
             return antennaList;
         }
 
-        #endregion
-
-        #region DecryptIchallenge
-
-        public static byte[] DecryptIchallenge(byte[] CipherData, byte[] Key)
+        private static byte[] DecryptIchallenge(byte[] CipherData, byte[] Key)
         {
             byte[] decipheredText = new byte[16];
             Aes a = new Aes(Aes.KeySize.Bits128, Key);
@@ -317,11 +316,7 @@ namespace ReadBuffer
             return decipheredText;
         }
 
-        #endregion
-
-        #region  DecryptCustomData
-
-        public static string DecryptCustomData(byte[] CipherData, byte[] key, byte[] IV)
+        private static string DecryptCustomData(byte[] CipherData, byte[] key, byte[] IV)
         {
             byte[] decipheredText = new byte[16];
             decipheredText = DecryptIchallenge(CipherData, key);
@@ -330,33 +325,27 @@ namespace ReadBuffer
             {
                 CustomData[i] = (byte)(decipheredText[i] ^ IV[i]);
             }
+
             return ByteFormat.ToHex(CustomData, "", " ");
         }
 
-        #endregion
-
-        #region  performEmbeddedOperation
-
-        public static byte[] performEmbeddedOperation(TagFilter filter, TagOp op)
+        private static byte[] performEmbeddedOperation(TagFilter filter, TagOp op)
         {
             TagReadData[] tagReads = null;
             byte[] response = null;
-            SimpleReadPlan plan = new SimpleReadPlan(antennaList, TagProtocol.GEN2, filter, op, 1000);
-            r.ParamSet("/reader/read/plan", plan);
-            tagReads = r.Read(1000);
+            SimpleReadPlan plan = new SimpleReadPlan(_antennaList, TagProtocol.GEN2, filter, op, 1000);
+            _r.ParamSet("/reader/read/plan", plan);
+            tagReads = _r.Read(1000);
             foreach (TagReadData tr in tagReads)
             {
                 Console.WriteLine("EPC: " + tr.EpcString);
                 response = tr.Data;
             }
+
             return response;
         }
 
-        #endregion
-
-        #region parseTAM1Response
-
-        public static void parseTAM1Response(byte[] response, byte[] key)
+        private static void parseTAM1Response(byte[] response, byte[] key)
         {
             byte[] generatedIChallenge = new byte[10];
             byte[] tempBuffer = new byte[16];
@@ -371,11 +360,8 @@ namespace ReadBuffer
                 Console.WriteLine("Returned Ichallenge : " + ByteFormat.ToHex(receivedIChallenge, "", " "));
             }
         }
-        #endregion
 
-        #region parseTAM2Response
-
-        public static void parseTAM2Response(byte[] response, byte[] key, ushort protMode)
+        private static void parseTAM2Response(byte[] response, byte[] key, ushort protMode)
         {
             byte[] generatedIChallenge = new byte[10];
             byte[] CipherData = new byte[16];
@@ -400,6 +386,5 @@ namespace ReadBuffer
                 }
             }
         }
-        #endregion
     }
 }

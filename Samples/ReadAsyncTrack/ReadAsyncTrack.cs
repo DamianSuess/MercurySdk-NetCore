@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -75,8 +75,10 @@ namespace ReadAsyncTrack
                         {
                             throw new FAULT_INVALID_REGION_Exception();
                         }
+
                         r.ParamSet("/reader/region/id", supportedRegions[0]);
                     }
+
                     string model = (string)r.ParamGet("/reader/version/model").ToString();
                     if (!model.Equals("M3e"))
                     {
@@ -105,6 +107,7 @@ namespace ReadAsyncTrack
                     {
                         plan = new SimpleReadPlan(antennaList, TagProtocol.GEN2, null, null, 1000);
                     }
+
                     // Set the created readplan
                     r.ParamSet("/reader/read/plan", plan);
 
@@ -113,7 +116,7 @@ namespace ReadAsyncTrack
                     r.TagRead += rl.TagRead;
 
                     // Create and add read exception listener
-                    r.ReadException += new EventHandler<ReaderExceptionEventArgs>(r_ReadException);
+                    r.ReadException += new EventHandler<ReaderExceptionEventArgs>(OnReadException);
                     // Search for tags in the background
                     r.StartReading();
                     Thread.Sleep(10000);
@@ -133,12 +136,10 @@ namespace ReadAsyncTrack
             }
         }
 
-        static void r_ReadException(object sender, ReaderExceptionEventArgs e)
+        static void OnReadException(object sender, ReaderExceptionEventArgs e)
         {
             Console.WriteLine("Error: " + e.ReaderException.Message);
         }
-
-        #region ParseAntennaList
 
         private static int[] ParseAntennaList(IList<string> args, int argPosition)
         {
@@ -162,29 +163,28 @@ namespace ReadAsyncTrack
                 Console.WriteLine("{0}\"{1}\"", ex.Message, args[argPosition + 1]);
                 Usage();
             }
+
             return antennaList;
         }
-
-        #endregion
 
     }
 
     class PrintNewListener
     {
-        Hashtable SeenTags = new Hashtable();
+        Hashtable _seenTags = new Hashtable();
 
         public void TagRead(Object sender, TagReadDataEventArgs e)
         {
-            lock (SeenTags.SyncRoot)
+            lock (_seenTags.SyncRoot)
             {
                 try
                 {
                     TagData t = e.TagReadData.Tag;
                     string epc = t.EpcString;
-                    if (!SeenTags.ContainsKey(epc))
+                    if (!_seenTags.ContainsKey(epc))
                     {
                         Console.WriteLine("New tag: " + t.ToString());
-                        SeenTags.Add(epc, null);
+                        _seenTags.Add(epc, null);
                     }
                 }
                 catch (ArgumentException ex)
