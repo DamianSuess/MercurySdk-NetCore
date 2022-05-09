@@ -10,10 +10,10 @@
 
   <ItemGroup>
     <Reference Include="LLRP">
-      <HintPath>..\netstandard2.0\LLRP.dll</HintPath>
+      <HintPath>..\..\netstandard2.0\LLRP.dll</HintPath>
     </Reference>
     <Reference Include="MercuryAPI">
-      <HintPath>..\netstandard2.0\MercuryAPI.dll</HintPath>
+      <HintPath>..\..\netstandard2.0\MercuryAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
 
