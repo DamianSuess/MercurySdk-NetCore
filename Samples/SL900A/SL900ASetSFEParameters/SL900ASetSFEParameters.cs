@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using ThingMagic;
@@ -18,6 +18,7 @@ namespace SL900AProjectSetSFEParamters
             }));
             Environment.Exit(1);
         }
+
         Reader reader;
         private static int[] antennaList = null;
         static void Main(string[] args)

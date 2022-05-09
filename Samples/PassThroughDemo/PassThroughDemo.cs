@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -123,6 +123,7 @@ namespace PassThroughDemo
                 reversedUid.Add(uidISO15693[(length - 1) - i]);
                 i++;
             }
+
             return reversedUid;
         }
     }

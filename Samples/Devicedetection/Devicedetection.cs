@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -76,6 +76,7 @@ namespace DeviceDetection
                         {
                             throw new FAULT_INVALID_REGION_Exception();
                         }
+
                         r.ParamSet("/reader/region/id", supportedRegions[0]);
                     }
 

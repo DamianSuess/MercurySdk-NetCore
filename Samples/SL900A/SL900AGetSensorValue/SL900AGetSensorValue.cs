@@ -227,6 +227,7 @@ namespace SL900A
                 Console.WriteLine("{0}\"{1}\"", ex.Message, args[argPosition + 1]);
                 Usage();
             }
+
             return antennaList;
         }
 

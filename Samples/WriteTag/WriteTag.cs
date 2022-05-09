@@ -1,4 +1,4 @@
-//Uncomment this to enable filter
+﻿//Uncomment this to enable filter
 //#define ENABLE_FILTER
 //Uncomment this to enable readafterwrite functionality
 //#define ENABLE_READ_AFTER_WRITE 
@@ -27,8 +27,8 @@ namespace WriteTag
     /// </summary>
     class WriteTag
     {
-        static int[] antennaList = null;
-        static Reader r = null;
+        static int[] _antennaList = null;
+        static Reader _r = null;
         static void Usage()
         {
             Console.WriteLine(String.Join("\r\n", new string[] {
@@ -54,12 +54,13 @@ namespace WriteTag
                 string arg = args[nextarg];
                 if (arg.Equals("--ant"))
                 {
-                    if (null != antennaList)
+                    if (null != _antennaList)
                     {
                         Console.WriteLine("Duplicate argument: --ant specified more than once");
                         Usage();
                     }
-                    antennaList = ParseAntennaList(args, nextarg);
+
+                    _antennaList = ParseAntennaList(args, nextarg);
                     nextarg++;
                 }
                 else
@@ -74,36 +75,38 @@ namespace WriteTag
                 // Create Reader object, connecting to physical device.
                 // Wrap reader in a "using" block to get automatic
                 // reader shutdown (using IDisposable interface).
-                using (r = Reader.Create(args[0]))
+                using (_r = Reader.Create(args[0]))
                 {
                     //Uncomment this line to add default transport listener.
                     //r.Transport += r.SimpleTransportListener;
 
-                    r.Connect();
-                    if (Reader.Region.UNSPEC == (Reader.Region)r.ParamGet("/reader/region/id"))
+                    _r.Connect();
+                    if (Reader.Region.UNSPEC == (Reader.Region)_r.ParamGet("/reader/region/id"))
                     {
-                        Reader.Region[] supportedRegions = (Reader.Region[])r.ParamGet("/reader/region/supportedRegions");
+                        Reader.Region[] supportedRegions = (Reader.Region[])_r.ParamGet("/reader/region/supportedRegions");
                         if (supportedRegions.Length < 1)
                         {
                             throw new FAULT_INVALID_REGION_Exception();
                         }
-                        r.ParamSet("/reader/region/id", supportedRegions[0]);
+
+                        _r.ParamSet("/reader/region/id", supportedRegions[0]);
                     }
-                    string model = (string)r.ParamGet("/reader/version/model").ToString();
+
+                    string model = (string)_r.ParamGet("/reader/version/model").ToString();
                     if (!model.Equals("M3e"))
                     {
-                        if (r.isAntDetectEnabled(antennaList))
+                        if (_r.isAntDetectEnabled(_antennaList))
                         {
                             Console.WriteLine("Module doesn't has antenna detection support please provide antenna list");
                             Usage();
                         }
                         //Use first antenna for operation
-                        if (antennaList != null)
-                            r.ParamSet("/reader/tagop/antenna", antennaList[0]);
+                        if (_antennaList != null)
+                            _r.ParamSet("/reader/tagop/antenna", _antennaList[0]);
                     }
                     else
                     {
-                        if (antennaList != null)
+                        if (_antennaList != null)
                         {
                             Console.WriteLine("Module doesn't support antenna input");
                             Usage();
@@ -191,9 +194,9 @@ namespace WriteTag
 #endif
 
                     // Perform read and print UID and tagtype of tag found
-                    SimpleReadPlan plan = new SimpleReadPlan(antennaList, TagProtocol.ISO15693, null, null, 1000);
-                    r.ParamSet("/reader/read/plan", plan);
-                    TagReadData[] tagReads = r.Read(1000);
+                    SimpleReadPlan plan = new SimpleReadPlan(_antennaList, TagProtocol.ISO15693, null, null, 1000);
+                    _r.ParamSet("/reader/read/plan", plan);
+                    TagReadData[] tagReads = _r.Read(1000);
                     Console.WriteLine("UID: " + tagReads[0].EpcString);
                     Console.WriteLine("TagType:  " + (Iso15693.TagType)(tagReads[0].TagType));
                     MemoryType type;
@@ -220,7 +223,7 @@ namespace WriteTag
 
                     // Read memory before write
                     ReadMemory bRead = new ReadMemory(type, address, length);
-                    byte[] dataRead = (byte[])r.ExecuteTagOp(bRead, mulfilter);
+                    byte[] dataRead = (byte[])_r.ExecuteTagOp(bRead, mulfilter);
 
                     // prints the data read
                     Console.WriteLine("Read Data before performing block write: ");
@@ -228,6 +231,7 @@ namespace WriteTag
                     {
                         Console.Write(" {0:X2}", i);
                     }
+
                     Console.WriteLine("\n");
                     // Uncomment this to enable Embedded read memory
                     //embeddedRead(TagProtocol.ISO15693, mulfilter, bRead);
@@ -237,13 +241,13 @@ namespace WriteTag
                     WriteMemory writeOp = new WriteMemory(type, address, data);
 
                     // Execute the tagop
-                    r.ExecuteTagOp(writeOp, mulfilter);
+                    _r.ExecuteTagOp(writeOp, mulfilter);
                     // Uncomment this to enable Embedded write data
                     //embeddedRead(TagProtocol.ISO15693, mulfilter, writeOp);
 
                     //Read memory after block write
                     ReadMemory readOp = new ReadMemory(type, address, length);
-                    byte[] readData = (byte[])r.ExecuteTagOp(readOp, mulfilter);
+                    byte[] readData = (byte[])_r.ExecuteTagOp(readOp, mulfilter);
 
                     // prints the data read
                     Console.WriteLine("Read Data after performing block write operation: ");
@@ -251,6 +255,7 @@ namespace WriteTag
                     {
                         Console.Write(" {0:X2}", i);
                     }
+
                     Console.WriteLine("\n");
 #endif
 
@@ -334,6 +339,7 @@ namespace WriteTag
                 Console.WriteLine("{0}\"{1}\"", ex.Message, args[argPosition + 1]);
                 Usage();
             }
+
             return antennaList;
         }
 
@@ -343,9 +349,9 @@ namespace WriteTag
         public static void embeddedRead(TagProtocol protocol, TagFilter filter, TagOp tagop)
         {
             TagReadData[] tagReads = null;
-            SimpleReadPlan plan = new SimpleReadPlan(antennaList, protocol, filter, tagop, 1000);
-            r.ParamSet("/reader/read/plan", plan);
-            tagReads = r.Read(1000);
+            SimpleReadPlan plan = new SimpleReadPlan(_antennaList, protocol, filter, tagop, 1000);
+            _r.ParamSet("/reader/read/plan", plan);
+            tagReads = _r.Read(1000);
             // Print tag reads
             foreach (TagReadData tr in tagReads)
             {
@@ -391,6 +397,7 @@ namespace WriteTag
                     byte dsfid = systemInfo[readIndex++];
                     Console.WriteLine("DSFID: " + dsfid.ToString());
                 }
+
                 if ((infoFlags & 0x0002) == 0x0002)
                 {
                     Console.WriteLine("AFI is supported and AFI field is present in the response");
@@ -398,6 +405,7 @@ namespace WriteTag
                     byte afi = systemInfo[readIndex++];
                     Console.WriteLine("AFI: " + afi.ToString());
                 }
+
                 if ((infoFlags & 0x0004) == 0x0004)
                 {
                     Console.WriteLine("VICC memory size is supported and VICC field is present in the response");
@@ -409,6 +417,7 @@ namespace WriteTag
                     Console.WriteLine("Block Size: " + blocksize);
                     readIndex += 2;
                 }
+
                 if ((infoFlags & 0x0008) == 0x0008)
                 {
                     Console.WriteLine("IC reference is supported and IC reference is present in the response");
@@ -492,6 +501,7 @@ namespace WriteTag
                 {
                     Console.WriteLine("Page protection is not locked for block {0}", address);
                 }
+
                 address++;
             }
         }
